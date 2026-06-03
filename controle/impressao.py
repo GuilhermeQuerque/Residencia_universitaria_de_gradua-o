@@ -19,7 +19,7 @@ def listar_impressoras():
         linhas = resultado.stdout.strip().splitlines()
         impressoras = []
         for linha in linhas:
-            if linha.startswith('printer '):
+            if linha.startswith('printer ') or linha.startswith('impressora '):
                 partes = linha.split()
                 if len(partes) >= 2:
                     nome = partes[1]
