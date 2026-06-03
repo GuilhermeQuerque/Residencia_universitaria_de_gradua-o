@@ -13,7 +13,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 
-from .forms import RegistroForm, SolicitarImpressaoForm
+from .forms import RecuperarSenhaForm, RedefinirSenhaForm, RegistroForm, SolicitarImpressaoForm
 from .impressao import ErroImpressao, contar_paginas, imprimir_arquivo
 from .models import LogImpressao, Pagamento, Perfil
 
@@ -167,3 +167,37 @@ def registrar(request):
         form = RegistroForm()
 
     return render(request, 'controle/registrar.html', {'form': form})
+
+
+def recuperar_senha(request):
+    if request.method == 'POST':
+        form = RecuperarSenhaForm(request.POST)
+        if form.is_valid():
+            request.session['reset_user_id'] = form.user.id
+            return redirect('redefinir_senha')
+    else:
+        form = RecuperarSenhaForm()
+    return render(request, 'controle/recuperar_senha.html', {'form': form})
+
+
+def redefinir_senha(request):
+    user_id = request.session.get('reset_user_id')
+    if not user_id:
+        return redirect('recuperar_senha')
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        del request.session['reset_user_id']
+        return redirect('recuperar_senha')
+
+    if request.method == 'POST':
+        form = RedefinirSenhaForm(request.POST)
+        if form.is_valid():
+            user.set_password(form.cleaned_data['senha'])
+            user.save()
+            del request.session['reset_user_id']
+            messages.success(request, 'Senha redefinida com sucesso.')
+            return redirect('login')
+    else:
+        form = RedefinirSenhaForm()
+    return render(request, 'controle/redefinir_senha.html', {'form': form})

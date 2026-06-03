@@ -106,3 +106,36 @@ class SolicitarImpressaoForm(forms.Form):
                     f'Formato "{extensao}" nao suportado para "{arquivo.name}". Use: {formatos}.'
                 )
         return arquivos
+
+
+class RecuperarSenhaForm(forms.Form):
+    email = forms.EmailField(label='Email institucional')
+    nome = forms.CharField(max_length=100, label='Nome completo')
+
+    def clean(self):
+        cleaned = super().clean()
+        email = cleaned.get('email')
+        nome = cleaned.get('nome', '').strip()
+        if email and nome:
+            try:
+                user = User.objects.get(email=email)
+                full_name = f'{user.first_name} {user.last_name}'.strip()
+                if full_name.lower() != nome.lower():
+                    raise forms.ValidationError('Nome nao corresponde ao email informado.')
+                self.user = user
+            except User.DoesNotExist:
+                raise forms.ValidationError('Email nao encontrado.')
+        return cleaned
+
+
+class RedefinirSenhaForm(forms.Form):
+    senha = forms.CharField(widget=forms.PasswordInput, label='Nova senha')
+    confirmar_senha = forms.CharField(widget=forms.PasswordInput, label='Confirmar senha')
+
+    def clean(self):
+        cleaned = super().clean()
+        senha = cleaned.get('senha')
+        confirmar = cleaned.get('confirmar_senha')
+        if senha and confirmar and senha != confirmar:
+            raise forms.ValidationError('Senhas nao conferem.')
+        return cleaned
