@@ -2,6 +2,15 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+class Perfil(models.Model):
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
+    cpf = models.CharField(max_length=11, blank=True, null=True, verbose_name='CPF')
+    inscricao = models.CharField(max_length=50, blank=True, null=True, verbose_name='Inscricao')
+
+    def __str__(self):
+        return f'{self.usuario.username} - Perfil'
+
+
 class Pagamento(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     valor = models.DecimalField(max_digits=8, decimal_places=2)

@@ -1,10 +1,113 @@
 {% extends "controle/base.html" %}
 
 {% block content %}
-    <h2>Login</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Entrar</button>
-    </form>
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 40px auto;
+        }
+        .login-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+        .login-header {
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            color: #fff;
+            padding: 20px 24px;
+        }
+        .login-header h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        .login-body {
+            padding: 24px;
+        }
+        .login-body p {
+            margin: 0 0 16px 0;
+        }
+        .login-body label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+        .login-body input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.15s;
+        }
+        .login-body input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .login-body .helptext,
+        .login-body .errorlist {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin: 4px 0 0 0;
+        }
+        .login-body .errorlist {
+            color: #dc2626;
+        }
+        .login-body .btn-entrar {
+            display: block;
+            width: 100%;
+            padding: 10px 18px;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .login-body .btn-entrar:hover {
+            background: #1d4ed8;
+        }
+        .login-links {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+        .login-links a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .login-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h2>Entrar</h2>
+            </div>
+            <div class="login-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn-entrar">Entrar</button>
+                </form>
+                <div class="login-links">
+                    <a href="{% url 'password_reset' %}" target="_blank" rel="noopener noreferrer">Esqueceu sua senha?</a>
+                    <br>
+                    <a href="{% url 'registrar' %}" target="_blank" rel="noopener noreferrer">Nao tem conta? Cadastre-se</a>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

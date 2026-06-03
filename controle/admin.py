@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import LogImpressao, Pagamento
+from .models import LogImpressao, Pagamento, Perfil
 
 
 @admin.register(Pagamento)
@@ -7,6 +7,11 @@ class PagamentoAdmin(admin.ModelAdmin):
     list_display = ('usuario', 'valor', 'data_pagamento')
     search_fields = ('usuario__username',)
 
+
+@admin.register(Perfil)
+class PerfilAdmin(admin.ModelAdmin):
+    list_display = ('usuario', 'cpf', 'inscricao')
+    search_fields = ('usuario__username',)
 
 @admin.register(LogImpressao)
 class LogImpressaoAdmin(admin.ModelAdmin):

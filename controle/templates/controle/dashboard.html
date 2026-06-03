@@ -140,17 +140,6 @@
             padding: 32px 20px;
             font-style: italic;
         }
-        .creditos {
-            margin-top: 28px;
-            padding: 16px 20px;
-            text-align: center;
-            color: #6b7280;
-            font-size: 0.85rem;
-            border-top: 1px solid #e5e7eb;
-        }
-        .creditos strong {
-            color: #374151;
-        }
     </style>
 
     <div class="dashboard">
@@ -159,7 +148,7 @@
                 <h1>Residência Universitária de Graduação</h1>
                 <p>Gerenciador de Impressões</p>
             </div>
-            <a class="dashboard-cta" href="{% url 'solicitar_impressao' %}">
+            <a class="dashboard-cta" href="{% url 'solicitar_impressao' %}" target="_blank" rel="noopener noreferrer">
                 + Nova impressão
             </a>
         </div>
@@ -205,11 +194,5 @@
             </div>
         </div>
 
-        <div class="creditos">
-            Sistema desenvolvido por
-            <strong>Guilherme Oliveira</strong>,
-            <strong>Gustavo Freitas</strong> e
-            <strong>Gabriel</strong>.
-        </div>
     </div>
 {% endblock %}

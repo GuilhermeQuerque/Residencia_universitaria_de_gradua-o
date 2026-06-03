@@ -1,32 +1,154 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciador de Impressoes</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f9fafb;
+            color: #1f2937;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ===== CABECALHO ===== */
+        .site-header {
+            background: linear-gradient(135deg, rgba(30,58,138,0.88), rgba(37,99,235,0.88)), url('{% static "impressoras/imagens/cabecalho_residencia.jpg" %}');
+            background-size: cover;
+            background-position: center;
+            color: #fff;
+        }
+        .header-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 18px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header-title {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 0.95rem;
+        }
+        .header-username {
+            opacity: 0.9;
+        }
+        .header-link {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 6px 14px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            transition: background 0.15s;
+        }
+        .header-link:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        /* ===== CONTEUDO ===== */
+        main {
+            flex: 1;
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 24px 28px;
+        }
+        .messages-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        .messages-list li {
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+        .messages-list .success { background: #dcfce7; color: #166534; }
+        .messages-list .error   { background: #fee2e2; color: #991b1b; }
+        .messages-list .warning { background: #fef3c7; color: #92400e; }
+
+        /* ===== RODAPE ===== */
+        .site-footer {
+            background: #fff;
+            border-top: 1px solid #e5e7eb;
+            padding: 16px 28px;
+        }
+        .footer-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .footer-left {
+            color: #6b7280;
+            font-size: 0.85rem;
+        }
+        .footer-right {
+            text-align: right;
+            color: #6b7280;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+        .footer-right strong {
+            color: #374151;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Gerenciador de Impressoes</h1>
-        {% if user.is_authenticated %}
-            <p>
-                Usuario: {{ user.username }} |
-                <a href="{% url 'dashboard' %}">Dashboard</a> |
-                <a href="{% url 'logout' %}">Sair</a>
-            </p>
-        {% endif %}
-        <hr>
+
+    <header class="site-header">
+        <div class="header-inner">
+            <h1 class="header-title">Gerenciador de impressoes</h1>
+            {% if user.is_authenticated %}
+                <div class="header-user">
+                    <span class="header-username">{{ user.get_full_name|default:user.username }}</span>
+                    <a class="header-link" href="{% url 'logout' %}" target="_blank" rel="noopener noreferrer">Sair</a>
+                </div>
+            {% endif %}
+        </div>
     </header>
 
     <main>
         {% if messages %}
-            <ul>
+            <ul class="messages-list">
                 {% for message in messages %}
-                    <li>{{ message }}</li>
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
                 {% endfor %}
             </ul>
         {% endif %}
         {% block content %}{% endblock %}
     </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-left">residencia universitaria de graduacao - UFRN</div>
+            <div class="footer-right">
+                Sistema desenvolvido por <strong>Guilherme Oliveira</strong>, <strong>Gustavo Freitas</strong> e <strong>Gabriel</strong>.<br>
+                Contato: Guilherme (84) 9 9697-4101 | Gustavo (84) 9 8168-9457
+            </div>
+        </div>
+    </footer>
+
 </body>
 </html>

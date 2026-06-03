@@ -5,14 +5,17 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView, LogoutView
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 
-from .forms import SolicitarImpressaoForm
+from .forms import RegistroForm, SolicitarImpressaoForm
 from .impressao import ErroImpressao, imprimir_arquivo
-from .models import LogImpressao, Pagamento
+from .models import LogImpressao, Pagamento, Perfil
 
 
 class LoginSimplesView(LoginView):
@@ -108,3 +111,44 @@ def solicitar_impressao(request):
             'impressora_nome': settings.IMPRESSORA_NOME or '(nao configurada)',
         },
     )
+
+
+def registrar(request):
+    if request.method == 'POST':
+        form = RegistroForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            nome = form.cleaned_data['nome'].strip()
+            senha = form.cleaned_data['senha']
+            cpf = form.cleaned_data.get('cpf') or None
+            inscricao = form.cleaned_data.get('inscricao') or None
+
+            username_base = email.split('@')[0][:30]
+            username = username_base
+            contador = 1
+            while User.objects.filter(username=username).exists():
+                username = f'{username_base}{contador}'
+                contador += 1
+
+            partes_nome = nome.split(' ', 1)
+            primeiro_nome = partes_nome[0]
+            sobrenome = partes_nome[1] if len(partes_nome) > 1 else ''
+
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=senha,
+                first_name=primeiro_nome,
+                last_name=sobrenome,
+            )
+            Perfil.objects.create(
+                usuario=user,
+                cpf=make_password(cpf) if cpf else None,
+                inscricao=make_password(str(inscricao)) if inscricao else None,
+            )
+            auth_login(request, user)
+            return redirect('dashboard')
+    else:
+        form = RegistroForm()
+
+    return render(request, 'controle/registrar.html', {'form': form})
