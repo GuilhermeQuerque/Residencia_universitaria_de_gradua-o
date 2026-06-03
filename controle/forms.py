@@ -53,11 +53,41 @@ class RegistroForm(forms.Form):
         return cleaned
 
 
+class MultipleFileInput(forms.FileInput):
+    allow_multiple_selected = True
+
+    def value_from_datadict(self, data, files, name):
+        return files.getlist(name)
+
+
+class MultipleFileField(forms.FileField):
+    widget = MultipleFileInput
+
+    def to_python(self, data):
+        if not data:
+            return []
+        if isinstance(data, list):
+            return data
+        return [data]
+
+    def validate(self, value):
+        if value in self.empty_values or not value:
+            raise forms.ValidationError('Selecione pelo menos um arquivo.', code='required')
+        for f in value:
+            super().validate(f)
+
+    def clean(self, data, initial=None):
+        data = self.to_python(data)
+        self.validate(data)
+        self.run_validators(data)
+        return data
+
+
 class SolicitarImpressaoForm(forms.Form):
-    paginas = forms.IntegerField(min_value=1, initial=1, label='Quantidade de paginas')
-    arquivo = forms.FileField(
-        label='Arquivo para imprimir',
-        help_text='Formatos: PDF, TXT, PS, PNG, JPG.',
+    arquivo = MultipleFileField(
+        label='Arquivo(s) para imprimir',
+        help_text='Formatos: PDF, TXT, PS, PNG, JPG. Segure Ctrl para selecionar varios.',
+        widget=MultipleFileInput(attrs={'multiple': True}),
     )
     descricao = forms.CharField(
         max_length=200,
@@ -67,9 +97,12 @@ class SolicitarImpressaoForm(forms.Form):
     )
 
     def clean_arquivo(self):
-        arquivo = self.cleaned_data['arquivo']
-        extensao = Path(arquivo.name).suffix.lower()
-        if extensao not in EXTENSOES_IMPRESSAO:
-            formatos = ', '.join(sorted(EXTENSOES_IMPRESSAO))
-            raise forms.ValidationError(f'Formato nao suportado. Use: {formatos}.')
-        return arquivo
+        arquivos = self.cleaned_data['arquivo']
+        for arquivo in arquivos:
+            extensao = Path(arquivo.name).suffix.lower()
+            if extensao not in EXTENSOES_IMPRESSAO:
+                formatos = ', '.join(sorted(EXTENSOES_IMPRESSAO))
+                raise forms.ValidationError(
+                    f'Formato "{extensao}" nao suportado para "{arquivo.name}". Use: {formatos}.'
+                )
+        return arquivos

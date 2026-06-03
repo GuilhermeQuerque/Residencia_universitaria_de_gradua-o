@@ -123,7 +123,7 @@
             {% if user.is_authenticated %}
                 <div class="header-user">
                     <span class="header-username">{{ user.get_full_name|default:user.username }}</span>
-                    <a class="header-link" href="{% url 'logout' %}" target="_blank" rel="noopener noreferrer">Sair</a>
+                    <a class="header-link" href="{% url 'logout' %}">Sair</a>
                 </div>
             {% endif %}
         </div>

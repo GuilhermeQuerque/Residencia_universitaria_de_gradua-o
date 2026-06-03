@@ -14,7 +14,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 
 from .forms import RegistroForm, SolicitarImpressaoForm
-from .impressao import ErroImpressao, imprimir_arquivo
+from .impressao import ErroImpressao, contar_paginas, imprimir_arquivo
 from .models import LogImpressao, Pagamento, Perfil
 
 
@@ -54,51 +54,66 @@ def solicitar_impressao(request):
     if request.method == 'POST':
         form = SolicitarImpressaoForm(request.POST, request.FILES)
         if form.is_valid():
-            paginas = form.cleaned_data['paginas']
-            arquivo = form.cleaned_data['arquivo']
+            arquivos = form.cleaned_data['arquivo']
             descricao = form.cleaned_data['descricao']
-            nome_arquivo = arquivo.name
-            descricao_log = f'Arquivo: {nome_arquivo}. {descricao}'.strip()
-            sufixo = Path(nome_arquivo).suffix or '.bin'
-            caminho_temp = None
+            total_paginas = 0
+            arquivos_processados = []
+            erros = []
 
-            try:
-                with tempfile.NamedTemporaryFile(delete=False, suffix=sufixo) as tmp:
-                    for pedaco in arquivo.chunks():
-                        tmp.write(pedaco)
-                    caminho_temp = Path(tmp.name)
+            for arquivo in arquivos:
+                nome = arquivo.name
+                sufixo = Path(nome).suffix or '.bin'
+                caminho = None
+                try:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=sufixo) as tmp:
+                        for pedaco in arquivo.chunks():
+                            tmp.write(pedaco)
+                        caminho = Path(tmp.name)
 
-                imprimir_arquivo(caminho_temp)
+                    pag = contar_paginas(caminho)
+                    imprimir_arquivo(caminho)
 
+                    total_paginas += pag
+                    arquivos_processados.append(nome)
+                except ErroImpressao as e:
+                    erros.append(f'{nome}: {e}')
+                finally:
+                    if caminho and caminho.exists():
+                        os.unlink(caminho)
+
+            if arquivos_processados:
+                nomes_str = ', '.join(arquivos_processados)
+                descricao_log = f'Arquivos: {nomes_str}. {descricao}'.strip().rstrip('.')
                 LogImpressao.objects.create(
                     usuario=request.user,
-                    paginas=paginas,
+                    paginas=total_paginas,
                     status='ok',
                     descricao=descricao_log,
                 )
                 Pagamento.objects.create(
                     usuario=request.user,
-                    valor=preco_por_pagina * paginas,
+                    valor=preco_por_pagina * total_paginas,
                     observacao=(
-                        f'Cobranca automatica: {paginas} pagina(s) - arquivo {nome_arquivo}.'
+                        f'Cobranca automatica: {total_paginas} pagina(s) - '
+                        f'arquivos: {nomes_str}.'
                     ),
                 )
-                messages.success(
-                    request,
-                    f'Arquivo enviado para a impressora "{settings.IMPRESSORA_NOME}".',
-                )
-                return redirect('dashboard')
-            except ErroImpressao as erro:
+                qtd = len(arquivos_processados)
+                msg = f'{qtd} arquivo(s) enviado(s) para a impressora "{settings.IMPRESSORA_NOME}".'
+                messages.success(request, msg)
+
+            if erros:
+                for e in erros:
+                    messages.error(request, f'Erro ao imprimir: {e}')
                 LogImpressao.objects.create(
                     usuario=request.user,
-                    paginas=paginas,
+                    paginas=0,
                     status='erro',
-                    descricao=f'{descricao_log} Erro: {erro}',
+                    descricao=f'Erro(s): {"; ".join(erros)}. {descricao}',
                 )
-                messages.error(request, str(erro))
-            finally:
-                if caminho_temp and caminho_temp.exists():
-                    os.unlink(caminho_temp)
+
+            if arquivos_processados:
+                return redirect('dashboard')
     else:
         form = SolicitarImpressaoForm()
 

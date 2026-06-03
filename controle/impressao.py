@@ -8,6 +8,20 @@ from django.conf import settings
 EXTENSOES_IMPRESSAO = {'.pdf', '.txt', '.ps', '.png', '.jpg', '.jpeg'}
 
 
+def contar_paginas(caminho: Path) -> int:
+    ext = caminho.suffix.lower()
+    if ext == '.pdf':
+        try:
+            from pypdf import PdfReader
+            reader = PdfReader(caminho)
+            return len(reader.pages)
+        except Exception as exc:
+            raise ErroImpressao(
+                f'Nao foi possivel ler o numero de paginas do PDF. Detalhe: {exc}'
+            )
+    return 1
+
+
 class ErroImpressao(Exception):
     """Falha ao enviar arquivo para a impressora configurada."""
 

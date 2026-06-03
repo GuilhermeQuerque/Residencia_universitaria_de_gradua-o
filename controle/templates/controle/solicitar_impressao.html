@@ -1,21 +1,121 @@
 {% extends "controle/base.html" %}
 
 {% block content %}
-    <h2>Solicitar impressao</h2>
-    <p>Preco por pagina: R$ {{ preco_por_pagina }}</p>
-    <p>Impressora configurada: <strong>{{ impressora_nome }}</strong></p>
-    <p>
-        Ao enviar, o servidor envia o arquivo automaticamente para essa impressora
-        (via CUPS no Linux). O arquivo e usado so temporariamente e depois apagado.
-    </p>
-    <p>
-        Em sucesso: log com status ok + cobranca automatica.
-        Em falha: log com status erro, sem cobranca.
-    </p>
+    <style>
+        .sol-container {
+            max-width: 520px;
+            margin: 40px auto;
+        }
+        .sol-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+        .sol-header {
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            color: #fff;
+            padding: 20px 24px;
+        }
+        .sol-header h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        .sol-body {
+            padding: 24px;
+        }
+        .sol-info {
+            background: #f0f5ff;
+            border: 1px solid #dbeafe;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #1e40af;
+            line-height: 1.5;
+        }
+        .sol-info strong {
+            color: #1e3a8a;
+        }
+        .sol-body p {
+            margin: 0 0 16px 0;
+        }
+        .sol-body label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+        .sol-body input,
+        .sol-body select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.15s;
+        }
+        .sol-body input:focus,
+        .sol-body select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .sol-body input[type="file"] {
+            padding: 8px;
+            font-size: 0.9rem;
+        }
+        .sol-body .helptext {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin: 4px 0 0 0;
+        }
+        .sol-body .errorlist {
+            color: #dc2626;
+            font-size: 0.85rem;
+            margin: 4px 0 0 0;
+            list-style: none;
+            padding: 0;
+        }
+        .sol-body .btn-enviar {
+            display: block;
+            width: 100%;
+            padding: 10px 18px;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+            margin-top: 8px;
+        }
+        .sol-body .btn-enviar:hover {
+            background: #1d4ed8;
+        }
+    </style>
 
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Enviar para impressao</button>
-    </form>
+    <div class="sol-container">
+        <div class="sol-card">
+            <div class="sol-header">
+                <h2>Solicitar impressao</h2>
+            </div>
+            <div class="sol-body">
+                <div class="sol-info">
+                    Preco por pagina: <strong>R$ {{ preco_por_pagina }}</strong><br>
+                    Impressora: <strong>{{ impressora_nome }}</strong>
+                </div>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn-enviar">Enviar para impressao</button>
+                </form>
+            </div>
+        </div>
+    </div>
 {% endblock %}

@@ -105,7 +105,7 @@
                 <form class="logout-form" method="post" action="{% url 'logout' %}">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-confirm">Sim, sair</button>
-                    <a href="{% url 'dashboard' %}" class="btn btn-cancel" target="_blank" rel="noopener noreferrer">Cancelar</a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-cancel">Cancelar</a>
                 </form>
             </div>
         </div>
