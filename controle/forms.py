@@ -9,11 +9,17 @@ from .impressao import EXTENSOES_IMPRESSAO
 
 class RegistroForm(forms.Form):
     email = forms.EmailField(label='Email institucional *')
-    nome = forms.CharField(max_length=100, label='Nome completo *')
+    username = forms.CharField(max_length=30, label='Nome de usuario *', help_text='nome usado para fazer login no sistema')
     cpf = forms.CharField(max_length=14, required=False, label='CPF *')
     inscricao = forms.CharField(max_length=50, required=False, label='Inscrição')
     senha = forms.CharField(widget=forms.PasswordInput, label='Senha *')
     confirmar_senha = forms.CharField(widget=forms.PasswordInput, label='Confirmar senha')
+
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError('Este nome de usuario ja esta em uso.')
+        return username
 
     def clean_cpf(self):
         cpf = self.cleaned_data.get('cpf', '')

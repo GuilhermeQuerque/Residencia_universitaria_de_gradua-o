@@ -1,0 +1,47 @@
+{% extends "controle/base.html" %}
+
+{% block content %}
+    <style>
+        .sel-container { max-width: 520px; margin: 40px auto; }
+        .sel-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        .sel-header { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: #fff; padding: 20px 24px; }
+        .sel-header h2 { margin: 0; font-size: 1.3rem; font-weight: 700; }
+        .sel-body { padding: 24px; }
+        .sel-body label { display: block; font-size: 0.9rem; font-weight: 600; color: #374151; margin-bottom: 4px; }
+        .sel-body select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; outline: none; box-sizing: border-box; }
+        .sel-body select:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .sel-body .btn { display: block; width: 100%; padding: 10px 18px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 16px; }
+        .sel-body .btn:hover { background: #1d4ed8; }
+        .sel-info { background: #f0f5ff; border: 1px solid #dbeafe; border-radius: 6px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.9rem; color: #1e40af; }
+    </style>
+
+    <div class="sel-container">
+        <div class="sel-card">
+            <div class="sel-header"><h2>Selecionar impressora</h2></div>
+            <div class="sel-body">
+                {% if not impressoras %}
+                    <div class="sel-info">Nenhuma impressora CUPS encontrada. Verifique se o CUPS esta rodando.</div>
+                {% else %}
+                    <div class="sel-info">
+                        {% if config and config.nome %}
+                            Atual: <strong>{{ config.nome }}</strong>
+                        {% else %}
+                            Nenhuma impressora definida. A variavel <code>IMPRESSORA_NOME</code> sera usada como fallback.
+                        {% endif %}
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <label for="nome">Impressora disponivel</label>
+                        <select name="nome" id="nome" required>
+                            <option value="" disabled {% if not config or not config.nome %}selected{% endif %}>Selecione...</option>
+                            {% for imp in impressoras %}
+                                <option value="{{ imp }}" {% if config and config.nome == imp %}selected{% endif %}>{{ imp }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn">Salvar</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

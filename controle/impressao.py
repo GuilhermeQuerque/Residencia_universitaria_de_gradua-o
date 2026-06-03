@@ -8,6 +8,36 @@ from django.conf import settings
 EXTENSOES_IMPRESSAO = {'.pdf', '.txt', '.ps', '.png', '.jpg', '.jpeg'}
 
 
+def listar_impressoras():
+    try:
+        resultado = subprocess.run(
+            ['lpstat', '-p'],
+            capture_output=True, text=True, timeout=10, check=False,
+        )
+        if resultado.returncode != 0:
+            return []
+        linhas = resultado.stdout.strip().splitlines()
+        impressoras = []
+        for linha in linhas:
+            if linha.startswith('printer '):
+                partes = linha.split()
+                if len(partes) >= 2:
+                    nome = partes[1]
+                    if nome not in impressoras:
+                        impressoras.append(nome)
+        return impressoras
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return []
+
+
+def obter_impressora_nome():
+    from .models import ImpressoraConfig
+    config = ImpressoraConfig.objects.first()
+    if config and config.nome:
+        return config.nome
+    return settings.IMPRESSORA_NOME
+
+
 def contar_paginas(caminho: Path) -> int:
     ext = caminho.suffix.lower()
     if ext == '.pdf':
@@ -27,11 +57,11 @@ class ErroImpressao(Exception):
 
 
 def imprimir_arquivo(caminho: Path) -> None:
-    nome_impressora = settings.IMPRESSORA_NOME
+    nome_impressora = obter_impressora_nome()
     if not nome_impressora:
         raise ErroImpressao(
-            'Impressora nao configurada. Defina a variavel IMPRESSORA_NOME '
-            '(nome exato do CUPS; use lpstat -p para listar).'
+            'Impressora nao configurada. Um administrador deve selecionar uma '
+            'impressora em Administracao > Impressoras.'
         )
 
     if platform.system() == 'Windows':

@@ -7,6 +7,7 @@ from .views import (
     recuperar_senha,
     redefinir_senha,
     registrar,
+    selecionar_impressora,
     solicitar_impressao,
 )
 
@@ -18,4 +19,5 @@ urlpatterns = [
     path('impressao/solicitar/', solicitar_impressao, name='solicitar_impressao'),
     path('recuperar/', recuperar_senha, name='recuperar_senha'),
     path('recuperar/confirmar/', redefinir_senha, name='redefinir_senha'),
+    path('admin/impressoras/', selecionar_impressora, name='selecionar_impressora'),
 ]

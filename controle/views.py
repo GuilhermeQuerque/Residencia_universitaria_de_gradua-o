@@ -6,16 +6,15 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login as auth_login
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView, LogoutView
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 
 from .forms import RecuperarSenhaForm, RedefinirSenhaForm, RegistroForm, SolicitarImpressaoForm
-from .impressao import ErroImpressao, contar_paginas, imprimir_arquivo
-from .models import LogImpressao, Pagamento, Perfil
+from .impressao import ErroImpressao, contar_paginas, imprimir_arquivo, listar_impressoras, obter_impressora_nome
+from .models import ImpressoraConfig, LogImpressao, Pagamento, Perfil
 
 
 class LoginSimplesView(LoginView):
@@ -99,7 +98,8 @@ def solicitar_impressao(request):
                     ),
                 )
                 qtd = len(arquivos_processados)
-                msg = f'{qtd} arquivo(s) enviado(s) para a impressora "{settings.IMPRESSORA_NOME}".'
+                nome_impressora = obter_impressora_nome() or '(nao configurada)'
+                msg = f'{qtd} arquivo(s) enviado(s) para a impressora "{nome_impressora}".'
                 messages.success(request, msg)
 
             if erros:
@@ -123,7 +123,7 @@ def solicitar_impressao(request):
         {
             'form': form,
             'preco_por_pagina': preco_por_pagina,
-            'impressora_nome': settings.IMPRESSORA_NOME or '(nao configurada)',
+            'impressora_nome': obter_impressora_nome() or '(nao configurada)',
         },
     )
 
@@ -133,28 +133,15 @@ def registrar(request):
         form = RegistroForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
-            nome = form.cleaned_data['nome'].strip()
+            username = form.cleaned_data['username']
             senha = form.cleaned_data['senha']
             cpf = form.cleaned_data.get('cpf') or None
             inscricao = form.cleaned_data.get('inscricao') or None
-
-            username_base = email.split('@')[0][:30]
-            username = username_base
-            contador = 1
-            while User.objects.filter(username=username).exists():
-                username = f'{username_base}{contador}'
-                contador += 1
-
-            partes_nome = nome.split(' ', 1)
-            primeiro_nome = partes_nome[0]
-            sobrenome = partes_nome[1] if len(partes_nome) > 1 else ''
 
             user = User.objects.create_user(
                 username=username,
                 email=email,
                 password=senha,
-                first_name=primeiro_nome,
-                last_name=sobrenome,
             )
             Perfil.objects.create(
                 usuario=user,
@@ -201,3 +188,27 @@ def redefinir_senha(request):
     else:
         form = RedefinirSenhaForm()
     return render(request, 'controle/redefinir_senha.html', {'form': form})
+
+
+@staff_member_required
+def selecionar_impressora(request):
+    impressoras = listar_impressoras()
+    config = ImpressoraConfig.objects.first()
+
+    if request.method == 'POST':
+        nome = request.POST.get('nome', '').strip()
+        if nome in impressoras:
+            if not config:
+                config = ImpressoraConfig.objects.create(nome=nome)
+            else:
+                config.nome = nome
+                config.save()
+            messages.success(request, f'Impressora "{nome}" definida como padrao.')
+        else:
+            messages.error(request, 'Impressora invalida.')
+        return redirect('selecionar_impressora')
+
+    return render(request, 'controle/selecionar_impressora.html', {
+        'impressoras': impressoras,
+        'config': config,
+    })

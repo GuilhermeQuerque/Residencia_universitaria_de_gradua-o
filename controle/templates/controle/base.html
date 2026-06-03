@@ -124,6 +124,7 @@
                 <div class="header-user">
                     <span class="header-username">{{ user.get_full_name|default:user.username }}</span>
                     {% if user.is_staff %}
+                        <a class="header-link" href="{% url 'selecionar_impressora' %}">Impressoras</a>
                         <a class="header-link" href="{% url 'admin:login' %}?next=/admin/">Administrador</a>
                     {% endif %}
                     <a class="header-link" href="{% url 'logout' %}">Sair</a>

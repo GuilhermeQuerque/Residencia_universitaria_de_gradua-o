@@ -36,3 +36,10 @@ class LogImpressao(models.Model):
 
     def __str__(self):
         return f'{self.usuario.username} - {self.paginas} pagina(s) - {self.status}'
+
+
+class ImpressoraConfig(models.Model):
+    nome = models.CharField(max_length=100, blank=True, verbose_name='Nome da fila CUPS')
+
+    def __str__(self):
+        return self.nome or '(nenhuma)'
