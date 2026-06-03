@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Impressoes</title>
+</head>
+<body>
+    <header>
+        <h1>Gerenciador de Impressoes</h1>
+        {% if user.is_authenticated %}
+            <p>
+                Usuario: {{ user.username }} |
+                <a href="{% url 'dashboard' %}">Dashboard</a> |
+                <a href="{% url 'logout' %}">Sair</a>
+            </p>
+        {% endif %}
+        <hr>
+    </header>
+
+    <main>
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

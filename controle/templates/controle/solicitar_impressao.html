@@ -1,0 +1,21 @@
+{% extends "controle/base.html" %}
+
+{% block content %}
+    <h2>Solicitar impressao</h2>
+    <p>Preco por pagina: R$ {{ preco_por_pagina }}</p>
+    <p>Impressora configurada: <strong>{{ impressora_nome }}</strong></p>
+    <p>
+        Ao enviar, o servidor envia o arquivo automaticamente para essa impressora
+        (via CUPS no Linux). O arquivo e usado so temporariamente e depois apagado.
+    </p>
+    <p>
+        Em sucesso: log com status ok + cobranca automatica.
+        Em falha: log com status erro, sem cobranca.
+    </p>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Enviar para impressao</button>
+    </form>
+{% endblock %}

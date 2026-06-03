@@ -1,0 +1,113 @@
+{% extends "controle/base.html" %}
+
+{% block content %}
+    <style>
+        .logout-container {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #1f2937;
+            max-width: 480px;
+            margin: 40px auto;
+        }
+        .logout-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+        .logout-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            color: #fff;
+            padding: 20px 24px;
+        }
+        .logout-header h1 {
+            margin: 0 0 4px 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+        .logout-header p {
+            margin: 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .logout-body {
+            padding: 24px;
+            text-align: center;
+        }
+        .logout-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #fef3c7;
+            color: #92400e;
+            font-size: 1.6rem;
+            margin-bottom: 12px;
+        }
+        .logout-message {
+            font-size: 1.05rem;
+            color: #111827;
+            margin: 0 0 6px 0;
+        }
+        .logout-username {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin: 0 0 24px 0;
+        }
+        .logout-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
+            text-align: center;
+        }
+        .btn-confirm {
+            background: #dc2626;
+            color: #fff;
+        }
+        .btn-confirm:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+        }
+        .btn-cancel {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        .btn-cancel:hover {
+            background: #e5e7eb;
+        }
+    </style>
+
+    <div class="logout-container">
+        <div class="logout-card">
+            <div class="logout-header">
+                <h1>Residência Universitária de Graduação</h1>
+                <p>Encerrar sessão</p>
+            </div>
+            <div class="logout-body">
+                <div class="logout-icon">!</div>
+                <p class="logout-message">Tem certeza que deseja sair?</p>
+                {% if user.is_authenticated %}
+                    <p class="logout-username">Você está logado como <strong>{{ user.username }}</strong>.</p>
+                {% endif %}
+                <form class="logout-form" method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-confirm">Sim, sair</button>
+                    <a href="{% url 'dashboard' %}" class="btn btn-cancel">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
