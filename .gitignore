@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+/media/
+/staticfiles/
+*.bak
+
+# Segredos / ambiente
+.env
+.env.*
+*.pem
+*.key
+
+# Ferramentas
+.idea/
+.vscode/
+.DS_Store
