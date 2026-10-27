@@ -122,6 +122,12 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+# Destino do collectstatic em producao (fora do git, ver .gitignore).
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Arquivos enviados pelos moradores (uploads). Ver organizacao.spec.md §4.
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Redirecionamentos simples para fluxo de login/logout.
 LOGIN_URL = 'login'

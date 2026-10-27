@@ -2,9 +2,9 @@
 
 > **Este é o primeiro arquivo a ler em qualquer chat/sessão.**
 > Ele reúne, em um só lugar, o que é **igual para o site inteiro** — stack, regras, permissões, rotas, ambiente — para que a IA já comece entendendo o projeto sem precisar deduzir de outros arquivos.
-> Ele é **geral** (vale para todas as páginas/módulos). O que é específico de uma página vive no spec daquela página (ex.: `noticias.spec.md`).
+> Ele é **geral** (vale para todas as páginas/módulos). O que é específico de uma página vive no spec daquela página (ex.: `specs/noticias.spec.md`).
 >
-> **Última atualização:** 23/10/2026
+> **Última atualização:** 27/10/2026
 
 ---
 
@@ -116,22 +116,26 @@ export IMPRESSORA_IP="10.1.168.164"
 
 - `controle/` — App principal (models, views, forms, impressao) + Perfil (morador)
 - `core/` — Configurações Django (settings, urls, wsgi)
-- `noticias/` — **Planejado** (v1): app do módulo de notícias (detalhes em `noticias.spec.md` §13)
+- `noticias/` — **Planejado** (v1): app do módulo de notícias (detalhes em `specs/noticias.spec.md` §13)
+
+> A **organização de diretórios e arquivos** (onde cada coisa mora, nomenclatura, o que não versionar) está em **`organizacao.spec.md`**.
 
 ## 11. Onde está cada tipo de documento
 
 | Documento | Tipo | Quando ler |
 |---|---|---|
 | `contexto.md` (este) | **Geral** — leitura inicial | **Sempre, 1x por sessão** |
-| `noticias.spec.md` | Spec do **módulo/página** | Ao trabalhar na Página 1 / Notícias |
+| `organizacao.spec.md` | **Spec de organização** | Ao criar/mover/renomear arquivos e pastas |
+| `specs/noticias.spec.md` | Spec do **módulo/página** | Ao trabalhar na Página 1 / Notícias |
 | `update_spec/andamento.spec.md` | **Vivo** — roadmap (módulos, status, rotas previstas) | Quando o escopo/status do projeto muda |
 | `update_spec/regras_atualizacao.md` | **Vivo** — regras de manutenção dos specs | Antes de editar qualquer spec |
 | `update_spec/mod_spec.md` | **Vivo** — log de mudanças de larga escala nos specs | Para consultar o histórico do *porquê* das mudanças |
-| `especificacoes.md`, `Site_Residencia_spec.md` | **Arquivados** (fonte histórica) | Só para consultar a origem |
+| `arquivados/especificacoes.md`, `arquivados/Site_Residencia_spec.md` | **Arquivados** (fonte histórica) | Só para consultar a origem |
 
 ## 12. Gotchas do código atual
 
 - `controle/models.py` **não tem** `moradores`: o morador é o `Perfil` (OneToOne → `User`). Evoluir esse modelo em vez de criar tabela paralela.
-- `core/settings.py` **não tem** `MEDIA_URL`/`MEDIA_ROOT` e a pasta `static/` referenciada em `STATICFILES_DIRS` não existe — a imagem do header (`imagens/cabecalho_residencia.jpg`) é procurada em `static/impressoras/imagens/` e não é encontrada.
 - O `dashboard` ainda ocupa `/` com `@login_required`; o plano é movê-lo para `/painel/` e deixar `/` para a home de notícias (público).
-- Sem `Pillow` e sem `MEDIA_URL` ainda — o upload de imagens das notícias exigirá configurar isso (ver `noticias.spec.md` §13).
+- Sem `Pillow` ainda — o upload de imagens das notícias exigirá configurar isso (ver `specs/noticias.spec.md` §13).
+- `MEDIA_URL`/`MEDIA_ROOT` e a pasta `static/` **já estão configurados** (27/10/2026) e a imagem do header está em `static/impressoras/imagens/cabecalho_residencia.jpg`. O que falta é o `MEDIA_ROOT` com subpastas de `upload_to` em produção (ver `organizacao.spec.md` §4.6).
+

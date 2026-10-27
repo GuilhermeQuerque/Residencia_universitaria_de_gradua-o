@@ -2,7 +2,7 @@
 
 > Regras que valem para **todos** os documentos de spec do repositório.
 > Objetivo: que um agente (ou o programador) saiba **quando** e **como** atualizar cada documento, sem deixar informação duplicada e defasada em dois lugares.
-> **Última atualização:** 23/10/2026
+> **Última atualização:** 27/10/2026
 
 ---
 
@@ -11,10 +11,11 @@
 | Tipo | Onde vive | Exemplo | Cadência |
 |---|---|---|---|
 | **Contexto geral** (read-once) | na raiz | `contexto.md` | Raramente — só quando muda stack, regra global, RBAC, rotas gerais ou ambiente |
-| **Spec de página/módulo** (estável) | na raiz | `noticias.spec.md` | Muda quando o escopo/regra **daquela página** muda |
+| **Spec de página/módulo** (estável) | `specs/` | `specs/noticias.spec.md` | Muda quando o escopo/regra **daquela página** muda |
+| **Spec de organização** (estável) | na raiz | `organizacao.spec.md` | Muda quando a organização de diretórios/arquivos muda |
 | **Spec vivo** (mutável) | `update_spec/` | `update_spec/andamento.spec.md` | Muda a **cada** avanço do projeto |
 
-**Um spec por página:** cada página/módulo do site tem seu próprio arquivo de spec na raiz, seguindo o padrão de `noticias.spec.md` (ex.: `impressora.spec.md`, `album.spec.md`, `lojinha.spec.md`). Nenhuma página precisa das regras gerais — elas estão em `contexto.md`.
+**Um spec por página:** cada página/módulo do site tem seu próprio arquivo de spec em `specs/`, seguindo o padrão de `specs/noticias.spec.md` (ex.: `specs/impressora.spec.md`, `specs/album.spec.md`, `specs/lojinha.spec.md`). Nenhuma página precisa das regras gerais — elas estão em `contexto.md`. A **organização de diretórios e arquivos** é transversal e tem spec próprio na raiz: `organizacao.spec.md`.
 
 **Regra de ouro:** a **visão de módulos, prioridades, status e rotas previstas** vive **apenas** em `update_spec/andamento.spec.md`. Nenhum outro documento pode copiar essa tabela. Se outro doc precisar falar de um módulo, ele **linka** para o `andamento.spec.md` em vez de repetir a informação.
 
@@ -33,7 +34,7 @@ Atualize **sempre** que ocorrer um destes eventos:
 
 Nesses casos, atualize a tabela/seção correspondente. Status e próximos passos **não** entram no `mod_spec.md` — o campo de status já é o registro.
 
-### 2.2 Spec de página/módulo (ex.: `noticias.spec.md`)
+### 2.2 Spec de página/módulo (ex.: `specs/noticias.spec.md`)
 
 Atualize quando a **página** muda:
 
@@ -101,12 +102,13 @@ Ao mexer em qualquer spec, confirme:
 
 - ❌ Não copie a tabela de módulos para dentro de um spec de página.
 - ❌ Não repita stack, RBAC, regras técnicas globais ou rotas gerais dentro de um spec de página — linke para `contexto.md`.
+- ❌ Não repita as regras de organização de diretórios/arquivos dentro de um spec de página — linke para `organizacao.spec.md`.
 - ❌ Não deixe duas versões da mesma rota em documentos diferentes sem apontar qual vale.
 - ❌ Não coloque tabela de histórico dentro de um spec — o log fica só em `update_spec/mod_spec.md`.
 - ❌ Não registre mudança pequena no `mod_spec.md` (typo, ajuste de texto, item acrescentado a uma seção).
 - ❌ Não crie um spec novo por tarefa pequena: atualize o spec da página existente.
 - ❌ Não use inglês nos títulos e tabelas dos specs (o código pode manter identificadores em inglês).
-- ❌ Não altere `especificacoes.md` e `Site_Residencia_spec.md` (fontes históricas, arquivadas) — elas não são mais atualizadas.
+- ❌ Não altere `arquivados/especificacoes.md` e `arquivados/Site_Residencia_spec.md` (fontes históricas, arquivadas) — elas não são mais atualizadas.
 - ❌ Não faça o `AGENTS.md` crescer: ele é índice, o contexto mora em `contexto.md`.
 
 ## 7. Índice dos documentos
@@ -114,7 +116,8 @@ Ao mexer em qualquer spec, confirme:
 | Arquivo | Tipo | Conteúdo | Atualizado por |
 |---|---|---|---|
 | `contexto.md` | geral (read-once) | Stack, não-funcionais, design, RBAC, regras técnicas, rotas gerais, ambiente, apps, gotchas | programador |
-| `noticias.spec.md` | spec de página | A Página 1 / Notícias (escopo, layout, modelo, admin, aceite) | programador + agente |
+| `organizacao.spec.md` | spec de organização | Onde cada arquivo mora, nomenclatura, o que versionar, checklist de commit | programador + agente |
+| `specs/noticias.spec.md` | spec de página | A Página 1 / Notícias (escopo, layout, modelo, admin, aceite) | programador + agente |
 | `update_spec/andamento.spec.md` | vivo | Roadmap: módulos, versões, status, rotas previstas, itens transversais | programador + agente |
 | `update_spec/mod_spec.md` | vivo | Log de mudanças de larga escala nos specs (nome, motivo, local, arquivo) | programador + agente |
 | `update_spec/regras_atualizacao.md` | vivo | Este documento: regras de manutenção dos specs | programador |

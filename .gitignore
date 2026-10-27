@@ -10,7 +10,10 @@ env/
 *.log
 db.sqlite3
 db.sqlite3-journal
-/media/
+# Uploads dos moradores: ignora o conteudo, mas mantem a pasta no git
+# (o .gitkeep e a unica coisa versionada aqui).
+/media/*
+!/media/.gitkeep
 /staticfiles/
 *.bak
 

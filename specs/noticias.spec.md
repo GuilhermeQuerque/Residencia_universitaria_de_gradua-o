@@ -2,8 +2,9 @@
 
 > **Escopo deste arquivo:** a **primeira página do site** (`/`) — a home de notícias, com destaques, grid de 3, lista de notícias passadas, menu lateral e a página de leitura de uma notícia.
 > **Contexto geral** (stack, regras técnicas, RBAC, rotas gerais, design, ambiente) está em **`contexto.md`** — leia antes.
+> **Organização de diretórios e arquivos** está em **`organizacao.spec.md`**.
 > **Status do módulo / roadmap do site:** `update_spec/andamento.spec.md`.
-> **Última atualização:** 23/10/2026
+> **Última atualização:** 27/10/2026
 
 ---
 
@@ -85,7 +86,7 @@ ORDER BY prioridade ASC, data_publicacao DESC, id DESC
 
 - `prioridade`: inteiro onde **1 = maior prioridade** (nível 1) e valores maiores = menor prioridade (`Pmin` é o piso).
 - O **default de inserção é `prioridade = 1` com `data_publicacao = now()`** — a notícia nasce no topo do slot B sem ajuste manual, porque a ordenação é por prioridade e, dentro do nível, por data mais recente.
-- **Nota de interpretação:** o texto-fonte em `Site_Residencia_spec.md` diz "ordem decrescente da maior prioridade 1 para a menor Pmin" e ao mesmo tempo "por padrão é adicionada como nível 1… adicionada como último". A ambiguidade foi resolvida assim: **1 = maior prioridade** (ordem crescente do número) e a ordenação interna do nível é por **data mais recente primeiro**; "adicionada como último" = a notícia é a mais recente do banco e, por isso, fica no topo. Qualquer mudança nesse critério precisa atualizar este trecho.
+- **Nota de interpretação:** o texto-fonte em `../arquivados/Site_Residencia_spec.md` diz "ordem decrescente da maior prioridade 1 para a menor Pmin" e ao mesmo tempo "por padrão é adicionada como nível 1… adicionada como último". A ambiguidade foi resolvida assim: **1 = maior prioridade** (ordem crescente do número) e a ordenação interna do nível é por **data mais recente primeiro**; "adicionada como último" = a notícia é a mais recente do banco e, por isso, fica no topo. Qualquer mudança nesse critério precisa atualizar este trecho.
 
 **Consultas da home (Django ORM):**
 
@@ -231,7 +232,7 @@ noticias/templates/noticias/inicial.html     → estende o base do site
 noticias/templates/noticias/lista.html
 noticias/templates/noticias/detalhe.html
 noticias/migrations/0001_initial.py
-static/impressoras/imagens/cabecalho_residencia.jpg   → (hoje a imagem está em imagens/ e o base.html a procura em static/)
+static/impressoras/imagens/cabecalho_residencia.jpg   → já no lugar (a imagem saiu de imagens/ em 27/10/2026)
 ```
 
 **Duas decisões de estrutura (ver `update_spec/andamento.spec.md`):** app novo `noticias` (recomendado) e `base.html` refatorado para base **do site** (não mais "do gerenciador de impressões"). Se a equipe preferir app único, tudo acima aplica com `controle/` no lugar de `noticias/`.

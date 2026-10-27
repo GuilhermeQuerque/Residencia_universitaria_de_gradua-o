@@ -3,7 +3,7 @@
 > Registro **centralizado** de mudanças grandes feitas nos specs do projeto.
 > Existe para que os arquivos de spec continuem limpos (só o conteúdo atual) e para que o histórico do *porquê* fique em um lugar só, consultável.
 >
-> **Última atualização:** 23/10/2026
+> **Última atualização:** 27/10/2026
 
 ---
 
@@ -46,6 +46,14 @@ Exemplo do formato:
 **Ao escrever a entrada:** pegue os números de linha **depois** de editar o arquivo, senão o intervalo aponta para o lugar errado.
 
 ## 3. Registro atual
+
+### 27/10/2026 — Spec de organização e reestruturação de pastas
+
+| | |
+|---|---|
+| **Motivo** | *Ant.:* os specs de página viviam na raiz (`noticias.spec.md`), as fontes históricas (`especificacoes.md`, `Site_Residencia_spec.md`) também, e as imagens do site estavam em `imagens/` — fora de `static/`, que o `STATICFILES_DIRS` já referenciava mas **não existia** (o `{% static %}` do header apontava para arquivo morto). Não havia regra escrita de "onde cada arquivo mora" nem de nomenclatura. *Defeito:* raiz do repositório virava depósito de documento; inconsistência de caminhos quebrava o banner e não havia regra de nomenclatura nem de versionamento. *Novo:* spec transversal `organizacao.spec.md` (na raiz, por valer para o site inteiro); pasta `specs/` concentrando um spec por página; `arquivados/` para as fontes históricas congeladas; `imagens/` → `static/impressoras/imagens/`; `MEDIA_URL`/`MEDIA_ROOT`/`STATIC_ROOT` no settings e serviço de `media/` em desenvolvimento. |
+| **Local** | Criação de `organizacao.spec.md` (1–268); `noticias.spec.md` → `specs/noticias.spec.md`; `especificacoes.md` → `arquivados/especificacoes.md`; `Site_Residencia_spec.md` → `arquivados/Site_Residencia_spec.md`; `imagens/cabecalho_residencia.jpg` → `static/impressoras/imagens/cabecalho_residencia.jpg`; `imagens/teste.pdf` → `static/impressoras/imagens/teste.pdf`; `core/settings.py` §"Static files" (linhas 118–130) com `STATIC_ROOT`, `MEDIA_URL` e `MEDIA_ROOT`; `core/urls.py` (linhas 17–30) servindo `static/` e `media/` em `DEBUG`; `contexto.md` §10–§12 (linhas 115–141); `AGENTS.md` (linhas 5–45); `update_spec/regras_atualizacao.md` §1, §2.2, §6, §7 (linhas 11–125); `update_spec/andamento.spec.md` §1, §2, §4 (linhas 15–79); `update_spec/README.md` (linhas 5–19); `specs/noticias.spec.md` cabeçalho e §13 (linhas 1–6, 234) |
+| **Arquivos** | `organizacao.spec.md`, `specs/noticias.spec.md`, `arquivados/*`, `static/*`, `core/settings.py`, `core/urls.py`, `contexto.md`, `AGENTS.md`, `update_spec/*` |
 
 ### 23/10/2026 — Separação entre contexto geral e spec por página
 

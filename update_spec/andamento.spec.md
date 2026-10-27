@@ -2,20 +2,21 @@
 
 > **Documento VIVO.** Este arquivo muda a cada avanço do projeto e é o **único** lugar onde a visão de módulos, prioridades e status do site é mantida.
 > **Regra:** nenhum outro spec pode duplicar a tabela de módulos. Se um módulo nasce, muda de status ou ganha/perde rota, **este arquivo é atualizado na mesma hora** (ver `regras_atualizacao.md`).
-> **Última atualização:** 23/10/2026
+> **Última atualização:** 27/10/2026
 
 ---
 
 ## 1. Metodologia
 
-**Build as you go** (de `Site_Residencia_spec.md`): o agente segue o spec e implementa; o programador define o rumo do site atualizando os specs.
+**Build as you go** (de `arquivados/Site_Residencia_spec.md`): o agente segue o spec e implementa; o programador define o rumo do site atualizando os specs.
 
 Consequência prática: o escopo do site é amplo e nem tudo está definido. Documentos foram separados em dois tipos:
 
 | Tipo | Onde vive | Quando muda |
 |---|---|---|
 | **Contexto geral** (read-once) | `contexto.md` na raiz | Só quando muda a stack, as regras globais, o RBAC ou o ambiente |
-| **Spec de página** (estável) | `noticias.spec.md` na raiz | Quando o escopo/regra daquela página muda |
+| **Spec de página** (estável) | `specs/` na raiz do repo | Quando o escopo/regra daquela página muda |
+| **Spec de organização** (estável) | `organizacao.spec.md` na raiz | Quando a organização de diretórios/arquivos muda |
 | **Spec vivo** (mutável) | `update_spec/` | A cada atualização do projeto |
 
 ## 2. Visão geral dos módulos
@@ -24,7 +25,7 @@ Consequência prática: o escopo do site é amplo e nem tudo está definido. Doc
 
 | Módulo | Descrição | Versão | Status | Rotas |
 |---|---|---|---|---|
-| **Notícias / Mural** | Página inicial com destaques, mural de avisos, atas, avisos PROAE, regimento, documentos | v1 | **planejado** (spec em `noticias.spec.md`) | `/`, `/noticias/`, `/noticia/<id>/` |
+| **Notícias / Mural** | Página inicial com destaques, mural de avisos, atas, avisos PROAE, regimento, documentos | v1 | **planejado** (spec em `specs/noticias.spec.md`) | `/`, `/noticias/`, `/noticia/<id>/` |
 | **Impressora compartilhada** | Upload de arquivos, cobrança via PIX, impressão automática em CUPS | v1 | **em andamento** | `/impressao/solicitar/`, `/impressoras/` |
 | **Lojinha (anúncios)** | Moradores vendem itens/serviços; contato por WhatsApp; admin ativa/desativa | v2 | planejado | `/lojinha/` |
 | **Álbum de fotos** | Álbuns de eventos da residência com fotos | v2 | planejado | `/album/` |
@@ -35,7 +36,7 @@ Consequência prática: o escopo do site é amplo e nem tudo está definido. Doc
 ## 3. Módulos por status — detalhe
 
 ### Notícias / Mural (v1) — planejado
-- Spec completo em `noticias.spec.md`.
+- Spec completo em `specs/noticias.spec.md`.
 - **Próximo passo:** criar o app `noticias` (model, admin, views, templates) e mover o dashboard logado de `/` para `/painel/`.
 - Bloqueia: nada. É a primeira página do site.
 
@@ -65,11 +66,13 @@ Consequência prática: o escopo do site é amplo e nem tudo está definido. Doc
 
 | Item | Estado | Onde |
 |---|---|---|
-| Menu lateral do site (HTML/CSS puro, JS só como melhoria) | pendente | `noticias.spec.md` §9 |
-| `base.html` refatorado de "gerenciador de impressões" para base do **site** | pendente | `noticias.spec.md` §13 |
-| `MEDIA_URL` / `MEDIA_ROOT` no settings (hoje não existem) | pendente | `contexto.md` §12 / `noticias.spec.md` §13 |
-| Pasta `static/` + `impressoras/imagens/cabecalho_residencia.jpg` | pendente | `contexto.md` §12 / `noticias.spec.md` §13 |
+| Menu lateral do site (HTML/CSS puro, JS só como melhoria) | pendente | `specs/noticias.spec.md` §9 |
+| `base.html` refatorado de "gerenciador de impressões" para base do **site** | pendente | `specs/noticias.spec.md` §13 |
+| `MEDIA_URL` / `MEDIA_ROOT` no settings | **concluído** (27/10/2026) | `organizacao.spec.md` §4.6 |
+| Pasta `static/` + `impressoras/imagens/cabecalho_residencia.jpg` | **concluído** (27/10/2026) | `organizacao.spec.md` §4.5 |
+| Especificação da organização de diretórios e arquivos | **concluído** (27/10/2026) | `organizacao.spec.md` |
 | Migração SQLite → PostgreSQL | pendente (ao ir para produção) | `contexto.md` §2 e §6 |
 | Backup do banco no `servidor_residencia` | pendente | `contexto.md` §3 |
+| Backup do `media/` (uploads) no `servidor_residencia` | pendente | `organizacao.spec.md` §4.6 |
 | Log de auditoria próprio (visitantes) | pendente | `contexto.md` §3 |
 | HTTPS/domínio do servidor | pendente | `contexto.md` §2 |

@@ -45,7 +45,9 @@ fi
 
 # Impede que arquivos sensíveis entrem no commit (o .gitignore cobre o futuro,
 # mas arquivos já versionados podem continuar rastreados).
-LEAKED=$(git ls-files | grep -E '(^|/)(db\.sqlite3|\.env)$|\.pyc$|__pycache__/|^media/|^venv/|^\.venv/' || true)
+# Obs.: media/.gitkeep é a única coisa permitida dentro de media/ (pasta vazia
+# não versiona no git). Ver organizacao.spec.md §4.6.
+LEAKED=$(git ls-files | grep -E '(^|/)(db\.sqlite3|\.env)$|\.pyc$|__pycache__/|^venv/|^\.venv/|^media/' | grep -v '^media/\.gitkeep$' || true)
 if [[ -n "$LEAKED" ]]; then
   err "Arquivos sensíveis ainda rastreados pelo git — remova-os antes de commitar:
 $LEAKED
