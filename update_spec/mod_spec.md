@@ -47,6 +47,14 @@ Exemplo do formato:
 
 ## 3. Registro atual
 
+### 27/10/2026 — Banco de desenvolvimento apagado
+
+| | |
+|---|---|
+| **Motivo** | *Ant.:* o `db.sqlite3` estava **versionado no git** (commits `96e3509` em diante) e o repositório é público: o blob antigo continuava baixível, expondo 5 contas (incluindo o superuser `[SUPERUSER-OMITIDO]`), um email real da UFRN, um **CPF em texto puro** (`[CPF-OMITIDO]`) e hashes de senha. *Defeito:* dado pessoal e credenciais de teste publicados num repositório acessível a qualquer um. *Novo:* arquivo `db.sqlite3` **apagado do disco** (reconstruído com `python manage.py migrate`), `.gitignore` cobrindo `db.sqlite3`/`.env`/`*.pyc`/`media/`/`venv/`, e remoção dos blobs do índice. **Pendente:** o histórico do git ainda contém o banco — reescrever o histórico e rotacionar `SECRET_KEY`/senhas. |
+| **Local** | `organizacao.spec.md` §4.8 (linhas 158–168); remoção de `db.sqlite3` (raiz); `.gitignore` (raiz) |
+| **Arquivos** | `organizacao.spec.md`, `.gitignore` |
+
 ### 27/10/2026 — Spec de organização e reestruturação de pastas
 
 | | |

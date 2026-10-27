@@ -76,3 +76,4 @@ Consequência prática: o escopo do site é amplo e nem tudo está definido. Doc
 | Backup do `media/` (uploads) no `servidor_residencia` | pendente | `organizacao.spec.md` §4.6 |
 | Log de auditoria próprio (visitantes) | pendente | `contexto.md` §3 |
 | HTTPS/domínio do servidor | pendente | `contexto.md` §2 |
+| **Reescrever histórico do git** (tirar `db.sqlite3` dos commits antigos) + rotacionar `SECRET_KEY` e senhas | **urgente** | `update_spec/mod_spec.md` (27/10/2026) |

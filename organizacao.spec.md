@@ -160,6 +160,10 @@ Layout interno padrão de um app:
 - `venv/` e `db.sqlite3` são **artefatos locais**, ignorados pelo git.
 - O `venv/` do repositório **não funciona** pela montagem SSHFS (root-owned, binários com `EPERM`) — ver `contexto.md` §8.
 - Em produção, o banco vira **PostgreSQL** (ver `contexto.md` §2 e §6).
+- **O `db.sqlite3` foi apagado de propósito (27/10/2026):** era o banco de desenvolvimento, com contas de teste e um superuser, e tinha acabado versionado por engano. O arquivo é **reconstruído** a qualquer momento com `python manage.py migrate` — não há dado de produção nele.
+  - O `.gitignore` garante que ele **nunca mais** entre no repositório.
+  - **Atenção:** apagar o arquivo **não** remove o banco do **histórico do git**. As versões antigas continuam acessíveis no GitHub até que o histórico seja reescrito (ver `update_spec/mod_spec.md`).
+  - Se o banco for recriado e receber dados reais, ele continua local — a migração para PostgreSQL é o que leva os dados para o servidor.
 
 ## 5. Nomenclatura
 
