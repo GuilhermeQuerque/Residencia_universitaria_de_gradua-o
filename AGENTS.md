@@ -27,6 +27,7 @@ cd /home/guizo/servidor_residencia/residencia/PROJETO_SITE
 python manage.py runserver 0.0.0.0:8000
 python manage.py migrate
 python manage.py test
+./push.sh "mensagem"      # commit + push para o GitHub
 ```
 
 > O `venv/` do repositório **não funciona** pela montagem SSHFS (root-owned, só tem pip, binários com EPERM). Detalhes em `contexto.md` §8.

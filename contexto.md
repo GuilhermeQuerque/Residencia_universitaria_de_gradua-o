@@ -92,6 +92,17 @@ python manage.py createsuperuser
 python manage.py test
 ```
 
+**Enviar para o GitHub:**
+
+```bash
+./push.sh                  # pede a mensagem, commita e envia
+./push.sh "mensagem"       # commita com a mensagem dada
+./push.sh --dry-run        # só mostra o que seria commitado
+./push.sh --no-push        # commita local, não envia
+```
+
+O script **recusa** o commit se houver arquivo sensível rastreado (`db.sqlite3`, `.env`, `.pyc`, `media/`, `venv/`).
+
 > ⚠️ O `venv/` do repositório foi criado no servidor remoto, é root-owned, só contém o `pip` (sem Django) e seus binários retornam `EPERM` pela montagem SSHFS — **`source venv/bin/activate` não funciona** a partir da montagem. Crie um venv próprio ou instale as dependências no `python3` do sistema.
 
 ## 9. Variáveis de ambiente (impressora)
