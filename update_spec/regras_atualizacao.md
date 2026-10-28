@@ -2,7 +2,7 @@
 
 > Regras que valem para **todos** os documentos de spec do repositório.
 > Objetivo: que um agente (ou o programador) saiba **quando** e **como** atualizar cada documento, sem deixar informação duplicada e defasada em dois lugares.
-> **Última atualização:** 27/10/2026
+> **Última atualização:** 28/10/2026
 
 ---
 
@@ -118,6 +118,7 @@ Ao mexer em qualquer spec, confirme:
 | `contexto.md` | geral (read-once) | Stack, não-funcionais, design, RBAC, regras técnicas, rotas gerais, ambiente, apps, gotchas | programador |
 | `organizacao.spec.md` | spec de organização | Onde cada arquivo mora, nomenclatura, o que versionar, checklist de commit | programador + agente |
 | `specs/noticias.spec.md` | spec de página | A Página 1 / Notícias (escopo, layout, modelo, admin, aceite) | programador + agente |
+| `specs/producao.spec.md` | spec de produção | Publicar o site 24/7 (serviço systemd, gunicorn, nginx, HTTPS, backup) | programador + agente |
 | `update_spec/andamento.spec.md` | vivo | Roadmap: módulos, versões, status, rotas previstas, itens transversais | programador + agente |
 | `update_spec/mod_spec.md` | vivo | Log de mudanças de larga escala nos specs (nome, motivo, local, arquivo) | programador + agente |
 | `update_spec/regras_atualizacao.md` | vivo | Este documento: regras de manutenção dos specs | programador |

@@ -5,7 +5,7 @@ Este arquivo é um **ponto de entrada curto**. Ele diz **o que ler, em que ordem
 ## Ordem de leitura (obrigatória)
 
 1. **`contexto.md`** — leitura inicial 1x por sessão: o que é o projeto, stack, regras técnicas, RBAC, rotas, ambiente, gotchas.
-2. **O spec da página/módulo em que você vai trabalhar** — ex.: `specs/noticias.spec.md` (Página 1 / Notícias). Se a tarefa não é de uma página específica, o passo 1 basta.
+2. **O spec da página/módulo em que você vai trabalhar** — ex.: `specs/noticias.spec.md` (Página 1 / Notícias). Se a tarefa não é de uma página específica, o passo 1 basta. Para o servidor/produção: `specs/producao.spec.md`.
 3. **`organizacao.spec.md`** — ao criar/mover/renomear arquivos ou pastas, ou antes de commitar.
 4. **`update_spec/andamento.spec.md`** — só se a tarefa mexer em escopo, status, rotas previstas ou próximos passos (é o roadmap vivo).
 5. **`update_spec/regras_atualizacao.md`** — antes de editar qualquer spec.
@@ -17,6 +17,7 @@ Este arquivo é um **ponto de entrada curto**. Ele diz **o que ler, em que ordem
 | `contexto.md` | Geral (read-once) | sempre, no início |
 | `organizacao.spec.md` | Spec de organização de diretórios e arquivos | ao criar/mover arquivos e pastas |
 | `specs/noticias.spec.md` | Spec do módulo/página Notícias (Página 1) | ao trabalhar em notícias/home |
+| `specs/producao.spec.md` | Spec de **produção** (rodar o site 24/7 no servidor) | ao publicar, configurar serviço/nginx/HTTPS/backup |
 | `update_spec/andamento.spec.md` | Roadmap **vivo** | mudanças de escopo/status/rota |
 | `update_spec/regras_atualizacao.md` | Regras de update dos specs | antes de editar specs |
 | `update_spec/mod_spec.md` | Log de mudanças de larga escala nos specs | para consultar o histórico do porquê |

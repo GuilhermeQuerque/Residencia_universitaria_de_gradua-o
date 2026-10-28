@@ -44,7 +44,8 @@ PROJETO_SITE/
 ├── claude.md                  → nota original da ideia do portal (arquivada na prática)
 │
 ├── specs/                     → um spec por página/módulo do site
-│   └── noticias.spec.md
+│   ├── noticias.spec.md
+│   └── producao.spec.md       → spec de produção (serviço 24/7, nginx, HTTPS)
 │
 ├── update_spec/               → docs vivos (mudam a cada avanço)
 │   ├── README.md
@@ -105,6 +106,7 @@ Só entram na raiz: **configuração do projeto**, **ponto de entrada do Django*
 ### 4.2 `specs/` — um spec por página/módulo
 
 - **Um arquivo por página ou módulo**, no formato `<pagina>.spec.md` (`noticias.spec.md`, `album.spec.md`, `lojinha.spec.md`, `impressora.spec.md`).
+- **Exceção: `producao.spec.md`** — não é uma página, é a operação do site no servidor (serviço systemd, nginx, HTTPS, backup). Fica em `specs/` mesmo assim, porque é o mesmo tipo de documento: escopo + regras + checklist de um recorte do projeto.
 - O **conteúdo de cada spec** é o escopo, layout, modelo de dados, rotas e critérios de aceitação **daquela página**.
 - Specs **nunca** repetem stack, RBAC, regras técnicas globais ou rotas gerais — isso está em `contexto.md`; o spec **linka**.
 - O **roadmap** (módulos, versões, status, rotas previstas) **não** vive em `specs/` — vive em `update_spec/andamento.spec.md`.

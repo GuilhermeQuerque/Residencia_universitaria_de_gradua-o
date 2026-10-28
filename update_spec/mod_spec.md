@@ -47,6 +47,14 @@ Exemplo do formato:
 
 ## 3. Registro atual
 
+### 28/10/2026 — Spec de produção e reescrita do histórico do git
+
+| | |
+|---|---|
+| **Motivo** | *Ant.:* não havia **nenhum** documento que dissesse como o site roda no servidor — nada sobre systemd, gunicorn, nginx, HTTPS, backup ou como subir. E o histórico do git ainda carregava material sensível: o `db.sqlite3` (CPF em texto puro, superuser com senha), o `SECRET_KEY` fixo em 10 commits e **bytecode `.pyc`** (que embute o `SECRET_KEY` como constante). *Defeito:* sem spec de produção, cada publicação seria improviso; e o repositório público continuaria servindo dado pessoal. *Novo:* (1) **`specs/producao.spec.md`** — spec completo de publicação: decisões e porquês, arquitetura, pré-requisitos verificados, instalação de `gunicorn`/`nginx`/`certbot`, config do nginx (proxy, TLS, upload de PDF, estáticos), unidade systemd com as opções de segurança, SELinux (`httpd_can_network_connect`), firewall, backup do SQLite, tabela de problemas conhecidos, checklist de publicação, **§11 com as dependências aguardando aprovação** e **§12 com as decisões em aberto** (domínio, fluxo do git, exposição, logs, backup, workers). (2) **Histórico reescrito** com `git filter-repo`: `db.sqlite3` e `*.pyc` removidos, `SECRET_KEY` fixo substituído por placeholder, e o CPF/senha **omitidos do `mod_spec.md`** (o próprio registro do vazamento republicava o dado). Push forçado feito; `main` aponta para o histórico novo. (3) `git` instalado no servidor. **Pendência:** o GitHub **ainda serve** os blobs antigos por URL/API (comportamento de cache do GitHub) — resolver exige deletar e recriar o repositório ou acionar o suporte do GitHub. |
+| **Local** | `specs/producao.spec.md` (criação, 1–446); `update_spec/andamento.spec.md` §4 (linhas 79–86); `organizacao.spec.md` §3 árvore-alvo (linha 48), §4.2 (linha 109); `AGENTS.md` §"Ordem de leitura" (linha 8) e §"Documentos do projeto" (linha 20); `update_spec/mod_spec.md` §3 (entrada de 27/10/2026, linha 86); `update_spec/regras_atualizacao.md` §7 (índice) |
+| **Arquivos** | `specs/producao.spec.md`, `update_spec/andamento.spec.md`, `organizacao.spec.md`, `AGENTS.md`, `update_spec/mod_spec.md`, `update_spec/regras_atualizacao.md` |
+
 ### 28/10/2026 — Servidor pronto (venv + requirements.txt) e banco SQLite em produção
 
 | | |

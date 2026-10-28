@@ -76,10 +76,13 @@ Consequência prática: o escopo do site é amplo e nem tudo está definido. Doc
 | Servidor com Python/Django funcionando (venv + `requirements.txt`) | **concluído** (28/10/2026) | `organizacao.spec.md` §4.8 |
 | Banco de produção: SQLite com modo WAL | **concluído** (28/10/2026) | `contexto.md` §2.1 |
 | PostgreSQL em produção | **descartado** (28/10/2026) — SQLite nativo dá conta do volume; PostgreSQL fica como ponto de revisão | `contexto.md` §2.1 |
-| Serviço do site rodando no servidor (systemd/supervisor) | pendente | `contexto.md` §8 |
+| Publicar o site 24/7 (systemd + gunicorn + nginx + HTTPS) | **spec pronto** (`specs/producao.spec.md`); a publicação em si depende de 3 decisões em aberto (domínio, fluxo do git pull, exposição) | `specs/producao.spec.md` |
+| Dependências de produção aprovadas (gunicorn, nginx, certbot) | **aguardando aprovação** — regra do `contexto.md` §6.1 | `specs/producao.spec.md` §11 |
+| Backup automático do banco (cron + sqlite3 backup) | pendente — o script está no spec, falta agendar | `specs/producao.spec.md` §9.3 |
 | Backup do banco no `servidor_residencia` | pendente | `contexto.md` §3 |
 | Backup do `media/` (uploads) no `servidor_residencia` | pendente | `organizacao.spec.md` §4.6 |
 | Backup do `secrets/` (segredo encriptado) no `servidor_residencia` | pendente | `organizacao.spec.md` §4.9 |
 | Log de auditoria próprio (visitantes) | pendente | `contexto.md` §3 |
 | HTTPS/domínio do servidor | pendente | `contexto.md` §2 |
-| **Reescrever histórico do git** (tirar `db.sqlite3` dos commits antigos) + rotacionar `SECRET_KEY` e senhas | **urgente** — o `SECRET_KEY` já saiu do código, mas o **valor antigo continua no histórico** | `update_spec/mod_spec.md` (28/10/2026) |
+| Reescrever histórico do git (tirar `db.sqlite3`, `SECRET_KEY` e `.pyc` dos commits antigos) | **feito no repositório** (28/10/2026) — `main` aponta para o histórico novo | `update_spec/mod_spec.md` (28/10/2026) |
+| **Fazer o GitHub esquecer os blobs antigos** (push forçado não basta) | **urgente** — os objetos antigos ainda respondem por URL/API | `update_spec/mod_spec.md` (28/10/2026) |
