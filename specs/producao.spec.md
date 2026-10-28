@@ -430,7 +430,7 @@ set -a; . ./.env; set +a
 venv/bin/python manage.py createsuperuser
 ```
 
-> ⚠️ O `db.sqlite3` que estava no histórico do git tinha um superuser `SUPERUSER-OMITIDO` com senha fraca. **Não repita esse erro**: senha forte, e não use e-mail real.
+> ⚠️ O `db.sqlite3` que estava no histórico do git tinha um superuser com **senha fraca** e **e-mail real**. (Os valores concretos não são citados aqui de propósito — citar republica o vazamento.) **Não repita esse erro**: senha forte, e-mail fictício.
 
 ---
 
