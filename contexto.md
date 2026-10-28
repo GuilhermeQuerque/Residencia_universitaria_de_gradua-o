@@ -4,7 +4,7 @@
 > Ele reúne, em um só lugar, o que é **igual para o site inteiro** — stack, regras, permissões, rotas, ambiente — para que a IA já comece entendendo o projeto sem precisar deduzir de outros arquivos.
 > Ele é **geral** (vale para todas as páginas/módulos). O que é específico de uma página vive no spec daquela página (ex.: `specs/noticias.spec.md`).
 >
-> **Última atualização:** 27/10/2026
+> **Última atualização:** 28/10/2026
 
 ---
 
@@ -17,10 +17,30 @@ O site atualiza os residentes, facilita comunicação entre vendedores e comprad
 ## 2. Stack e infraestrutura
 
 - **Backend:** Python 3.14 + **Django 6.0.5**
-- **Banco:** SQLite em desenvolvimento → **PostgreSQL em produção** (migrar quando o módulo entrar em produção)
+- **Banco:** **SQLite (nativo do Django) também em produção** — ver §2.1
 - **Frontend:** HTML + CSS + templates do Django. **Com minimo de uso de JavaScript.**
 - **Infraestrutura:** servidor local próprio da residência (`servidor_residencia`, via SSHFS em `residencia@10.2.184.170:/`), com rotinas de backup e logs de auditoria.
 - **Idioma:** pt-br em todas as strings, labels, mensagens e nomes de rotas.
+
+### 2.1 Banco de dados: SQLite em produção
+
+**Decisão de 28/10/2026.** O projeto usa **SQLite nos dois ambientes** — em desenvolvimento e no servidor. Não há PostgreSQL.
+
+**Por quê:**
+
+| Motivo | Detalhe |
+|---|---|
+| **Volume** | O site atende dezenas de moradores de uma residência: poucos milhares de registros de impressão, pagamento e perfil. Isso é pequeno para qualquer banco. |
+| **Zero servidor de banco** | Não há `postgres` instalado no servidor, nem serviço para manter, atualizar, fazer backup e proteger. |
+| **Zero dependência extra** | PostgreSQL exigiria `psycopg` — uma lib a mais, contra a regra do §6.1. SQLite é nativo do Django. |
+| **Backup trivial** | O banco é **um arquivo** (`db.sqlite3`): copiar o arquivo é o backup. Com PostgreSQL seria `pg_dump` + agendamento. |
+| **Código neutro** | Nenhum model usa recurso específico de PostgreSQL. Trocar de banco depois é só mudar o `ENGINE` — o Django não exige reescrever os models. |
+
+**Teste de concorrência feito (28/10/2026, no servidor):** 8 threads (4 escrevendo + 4 lendo), 240 operações — **zero erros**, 7 s. Com **modo WAL** ativado (`journal_mode=wal`), leitura e escrita acontecem ao mesmo tempo, que é o caso real do site.
+
+**Limites conhecidos (quando revisitar):** o SQLite serializa as escritas. Para um site com muitos usuários gravando ao mesmo tempo, o PostgreSQL escala melhor. **Ponto de revisão:** se o site passar a ter tráfego pesado, ou se o "controle de visitantes" (v3, com log de auditoria próprio) gerar gravação constante, reavaliar para PostgreSQL.
+
+**Como trocar, se um dia precisar:** `DATABASES` em `core/settings.py` muda o `ENGINE` para `django.db.backends.postgresql` e o `NAME` para o banco; os models não mudam. O `psycopg` precisaria ser instalado (é dependência nova — perguntar antes, §6.1).
 
 ## 3. Requisitos não-funcionais
 
@@ -51,10 +71,18 @@ O site atualiza os residentes, facilita comunicação entre vendedores e comprad
 
 ## 6. Regras técnicas globais
 
-1. **Não adicionar bibliotecas extras** sem consultar o spec da página em que você está trabalhando.
+1. **Não adicionar bibliotecas extras por vontade própria.** A regra permite **perguntar** — e perguntar é o caminho certo quando a biblioteca faz sentido. O que **não** pode é adicionar a dependência sem o programador decidir. Na prática:
+   - **Pode** usar só o que já está instalado (biblioteca padrão do Python, Django, o que o `requirements.txt` já trouxer).
+   - **Pode** sugerir uma biblioteca e **perguntar** — mesmo que a solução pareça óbvia.
+   - **Não pode** instalar, adicionar ao `requirements.txt` ou escrever código que dependa de uma lib nova sem a resposta do programador.
+   - Antes de perguntar, ver se a biblioteca padrão resolve (o `contexto.md` §9 traz um exemplo: a encriptação do `SECRET_KEY` foi feita com `secrets` + `hashlib.scrypt` + `hmac`, sem `pip install`).
+   - Se a resposta for "não", o caminho é resolver com o que já existe — não contornar a regra.
+
+   > A pergunta é barato; a dependência é permanente (instalar no servidor, manter atualizada, auditing de segurança). Por isso ela se decide antes, não depois.
+
 2. **Não usar frameworks de frontend** (React, Vue, Angular…).
 3. **JavaScript é permitido, mas no mínimo possível.** Use JS apenas quando o HTML/CSS puro não resolve o caso (ex.: widget do PIX InfinitePay). Onde o nativo resolver, resolva no nativo: `<details>` para dropdown, `<dialog>` para modal, CSS `:checked`/`:target` para abrir/fechar. Sem jQuery, sem bundler, sem `node_modules`.
-4. **Migrar para PostgreSQL** quando o módulo entrar em produção.
+4. **SQLite em produção também** (decisão de 28/10/2026) — o ponto de revisão para PostgreSQL está em §2.1.
 5. **Strings sempre em português** (pt-br), sem acento removido no código (apenas em strings de log antigas, legado).
 6. **Fotos/arquivos de upload** via `MEDIA_ROOT`; estáticos via `STATICFILES_DIRS`.
 7. Sem `Pillow`/processamento de imagem no v1: apenas upload do arquivo original com validação de extensão e tamanho.
@@ -82,15 +110,33 @@ O site atualiza os residentes, facilita comunicação entre vendedores e comprad
 ## 8. Ambiente e comandos (reproduzível)
 
 ```bash
-# caminho no servidor (via SSHFS montado localmente)
-/home/guizo/servidor_residencia/residencia/PROJETO_SITE   # local
-/residencia/PROJETO_SITE                                   # no servidor
+# --- caminhos ---
+# Local (via SSHFS montado de root@10.2.184.170:/home):
+/home/guizo/servidor_residencia/residencia/PROJETO_SITE
+# No servidor (caminho real):
+/home/residencia/PROJETO_SITE
 
-python manage.py runserver 0.0.0.0:8000
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py test
+# --- no servidor (o venv do projeto) ---
+cd /home/residencia/PROJETO_SITE
+venv/bin/python manage.py runserver 0.0.0.0:8000
+venv/bin/python manage.py migrate
+venv/bin/python manage.py createsuperuser
+venv/bin/python manage.py test
+venv/bin/python manage.py check --deploy
 ```
+
+> ⚠️ **O `venv/` quebra SÓ pela montagem SSHFS** (os symlinks dão `EPERM` — `readlink` em `venv/bin/python` falha). **No servidor ele funciona normalmente.** Não criar venv dentro da pasta montada: `python -m venv` falha ali com `Operation not permitted`. Use o `venv/` do servidor ou um venv em disco local (`/tmp`).
+>
+> O `venv/` do servidor tem **Python 3.14.3** e o Django **6.0.5** instalado (28/10/2026). As dependências estão fixadas em `requirements.txt`.
+
+**Acesso ao servidor:** `ssh root@10.2.184.170` (chave já instalada em 28/10/2026 — sem senha no prompt). O `git` **não está instalado** no servidor: o deploy é manual.
+
+**Carregar as variáveis de ambiente (serviço ou shell):**
+```bash
+set -a; . /home/residencia/PROJETO_SITE/.env; set +a
+```
+
+> ⚠️ **O `SECRET_KEY` no `.env` precisa ser seguro para shell.** Se tiver `$` ou `)`, o shell expande `$var` ou quebra a linha de sintaxe — e o Django lê um valor diferente (ou nenhum) **sem avisar**. O `segredos.py` já gera só com `A-Za-z0-9-_.~` por isso.
 
 **Enviar para o GitHub:**
 
@@ -103,7 +149,7 @@ python manage.py test
 
 O script **recusa** o commit se houver arquivo sensível rastreado (`db.sqlite3`, `.env`, `.pyc`, `media/`, `venv/`).
 
-> ⚠️ O `venv/` do repositório foi criado no servidor remoto, é root-owned, só contém o `pip` (sem Django) e seus binários retornam `EPERM` pela montagem SSHFS — **`source venv/bin/activate` não funciona** a partir da montagem. Crie um venv próprio ou instale as dependências no `python3` do sistema.
+> ⚠️ O `venv/` do repositório foi criado no servidor remoto e é root-owned. Pela montagem SSHFS os binários retornam `EPERM` — **`source venv/bin/activate` não funciona** a partir da montagem. No servidor, porém, **funciona normalmente** (Python 3.14.3 + Django 6.0.5 instalados em 28/10/2026).
 
 ## 9. Variáveis de ambiente
 
@@ -111,17 +157,51 @@ O script **recusa** o commit se houver arquivo sensível rastreado (`db.sqlite3`
 
 | Variável | Padrão | Quando usar |
 |---|---|---|
-| `DJANGO_SECRET_KEY` | valor de dev (inseguro) | **Obrigatória em produção** — sem ela e com `DJANGO_DEBUG=False` o Django nem sobe |
+| `DJANGO_SECRET_KEY` | — (nenhuma) | **Obrigatória em produção.** Sem ela, o Django não sobe — não existe valor fixo no código |
+| `DJANGO_MASTER_KEY` | — (nenhuma) | Frase-semente que **decripta** o segredo local. Só em desenvolvimento |
 | `DJANGO_DEBUG` | `True` | `False` em produção (liga SSL, cookies seguros e HSTS) |
 | `DJANGO_ALLOWED_HOSTS` | vazio | Lista separada por vírgula: `a.com,b.com` |
 | `DJANGO_SECURE_HSTS_SECONDS` | `31536000` | Em produção, tempo do HSTS em segundos |
 
-Gere um segredo real com:
+### O `SECRET_KEY`: script de geração e decriptação
+
+> **Regra de ouro:** o `SECRET_KEY` **nunca** está escrito no código — nem em `core/settings.py`, nem em nenhum arquivo versionado.
+
+O segredo é gerado e guardado **encriptado** pelo script `segredos.py` (raiz do repositório):
+
 ```bash
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+# 1. Gerar o segredo (pede a frase-semente; ela nunca é salva em arquivo).
+./segredos.py gerar
+
+# 2. Ver o valor em texto claro.
+DJANGO_MASTER_KEY="sua frase" ./segredos.py decriptar
+
+# 3. Gravar direto no .env local (permissões 600).
+DJANGO_MASTER_KEY="sua frase" ./segredos.py decriptar --escrever-env
+
+# 4. Conferir se o arquivo encriptado continua íntegro.
+DJANGO_MASTER_KEY="sua frase" ./segredos.py verificar
 ```
 
-> ⚠️ **O `SECRET_KEY` não está mais fixo no código** (27/10/2026). O valor antigo estava publicado no histórico do git — quem o conhece consegue forjar sessões e cookies assinados. O valor fixo agora é um *fallback de desenvolvimento* sem conteúdo real.
+**Onde o segredo é resolvido** (`core/settings.py`, via `core/segredos.py`), em ordem de preferência:
+
+1. **`DJANGO_SECRET_KEY` do ambiente** — é o caminho de **produção**; o serviço do servidor define a variável.
+2. **Arquivo `secrets/secret.key`, decriptado na hora** — caminho de **desenvolvimento**; precisa da frase-semente em `DJANGO_MASTER_KEY`.
+3. **Nenhum dos dois** → o Django **recusa a subir** com `RuntimeError` explicando o que fazer.
+
+> ⚠️ **Onde o decriptamento é necessário:** o `core/segredos.py` é o **único** lugar do projeto que decripta o segredo — ele é importado pelo `core/settings.py`, que é o **único** ponto onde o valor em texto claro é usado. Qualquer outro módulo que precisar do segredo (ex.: um script de backup, uma tarefa de deploy) deve **importar `core.segredos.obter_secret_key()`** e **nunca** reimplementar a decriptação, nem ler o arquivo encriptado por conta própria.
+
+**Como a encriptação funciona** (implementada com a **biblioteca padrão do Python** — sem `pip install`, conforme a regra de libs extras do §6):
+
+- `secrets` sorteia o *salt* e o *nonce* de cada encriptação;
+- `hashlib.scrypt` deriva a chave a partir da frase-semente (lento de propósito, contra força bruta);
+- `hmac`/`sha256` gera o fluxo de cifragem (modo CTR) e a **etiqueta de autenticação**;
+- o arquivo encriptado tem o formato `v1.<salt>.<nonce>.<cifrado>.<etiqueta>` (Base64 url-safe);
+- o decriptor **confere a etiqueta antes de devolver qualquer texto** — se a frase estiver errada ou o arquivo for adulterado, ele **falha** em vez de devolver lixo.
+
+> ⚠️ **O `SECRET_KEY` antigo estava publicado no histórico do git** (27/10/2026) — quem o conhece consegue forjar sessões e cookies assinados. Ele foi removido do código e **não volta**: o valor novo só existe encriptado ou no ambiente. **Rotacionar** o valor antigo continua pendente no histórico (ver `update_spec/andamento.spec.md` §4).
+
+> 📌 **O `segredos.py` (raiz) e a pasta `secrets/` estão no `.gitignore`** — junto com o `.env`. O módulo `core/segredos.py` **versiona normalmente**, porque é código, não segredo.
 
 ### Impressora
 

@@ -13,23 +13,28 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 
+from core.segredos import obter_secret_key
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# --- Configuração por variável de ambiente -------------------------------
-# Em desenvolvimento funciona sem configurar nada (fallback abaixo).
-# Em produção, defina no ambiente do serviço:
-#   DJANGO_SECRET_KEY=<segredo aleatório longo>
-#   DJANGO_DEBUG=False
-#   DJANGO_ALLOWED_HOSTS=residencia.ufrn.edu.br,10.2.184.170
+# --- SECRET_KEY -------------------------------------------------------------
+# O segredo NÃO está escrito no código. Ele é resolvido nesta ordem:
+#
+#   1. variável de ambiente `DJANGO_SECRET_KEY` (é o que a produção usa);
+#   2. o arquivo local encriptado `secrets/secret.key`, decriptado pelo
+#      `core/segredos.py` (desenvolvimento).
+#
+# Se nenhum dos dois existir, o Django NÃO sobe — ver a checagem abaixo.
+#
+# Para gerar o segredo encriptado (pede a frase-semente):
+#   ./segredos.py gerar
+#
+# Para ver o valor em texto claro:
+#   DJANGO_MASTER_KEY="sua frase" ./segredos.py decriptar
 
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    # Fallback de DESENVOLVIMENTO. Nunca use este valor em produção:
-    # quem o conhece consegue forjar sessões/cookies assinados.
-    'django-insecure-dev-only-nao-use-em-producao',
-)
+SECRET_KEY = obter_secret_key() or ''
 
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('1', 'true', 'yes', 'sim')
 
@@ -39,11 +44,13 @@ ALLOWED_HOSTS = [
     if h.strip()
 ]
 
-if not DEBUG and SECRET_KEY.startswith('django-insecure-'):
+if not SECRET_KEY:
     raise RuntimeError(
-        'DJANGO_SECRET_KEY precisa ser definido com um valor real quando '
-        'DJANGO_DEBUG=False. Gere um com: '
-        'python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"'
+        'Nenhum SECRET_KEY disponível. Faça uma destas coisas:\n'
+        '  1. defina a variável de ambiente DJANGO_SECRET_KEY (produção); ou\n'
+        '  2. gere o segredo encriptado com "./segredos.py gerar" e exporte a\n'
+        '     frase-semente em DJANGO_MASTER_KEY (desenvolvimento).\n'
+        'O segredo nunca é escrito no código — é sempre externo.'
     )
 
 
@@ -89,13 +96,29 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+# --- Banco de dados ---------------------------------------------------------
+# O projeto usa SQLite (nativo do Django) tambem em producao.
+# Decisao de 28/10/2026 — ver contexto.md §2 para o porque e os limites.
+#
+# SQLite: arquivo unico, sem servidor de banco para instalar/manter no
+# servidor, sem `psycopg` (dependencia extra), e backup = copiar 1 arquivo.
+# O volume do site (dezenas de moradores, alguns milhares de registros de
+# impressao) cabe folgadamente nesse perfil.
+#
+# Para sair do SQLite: PostgreSQL continua sendo a opcao (o Django suporta
+# sem mudar o codigo dos models). O ponto de revisao esta em contexto.md §2.
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        # Modo WAL: permite leitura e escrita ao mesmo tempo, que e o caso
+        # real do site (varios moradores consultando enquanto ha gravacao).
+        # O `init_command` vai dentro de OPTIONS (e o que o Django le).
+        'OPTIONS': {
+            'timeout': 20,
+            'init_command': 'PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;',
+        },
     }
 }
 

@@ -30,16 +30,18 @@ python manage.py runserver 0.0.0.0:8000
 python manage.py migrate
 python manage.py test
 ./push.sh "mensagem"      # commit + push para o GitHub
+./segredos.py gerar      # gera o SECRET_KEY encriptado (pede a frase-semente)
 ```
 
 > O `venv/` do repositório **não funciona** pela montagem SSHFS (root-owned, só tem pip, binários com EPERM). Detalhes em `contexto.md` §8.
 
 ## Regras de ouro (resumo — o porquê está em `contexto.md`)
 
-- **Não** adicionar libs extras nem frameworks frontend. **JS é permitido, mas no mínimo possível** (nativo antes de JS) — consulte o spec da página.
+- **Não** adicionar libs extras **por vontade própria** — mas **pode perguntar**: sugira e pergunte, não instale. Só use o que já está instalado. Também **não** use frameworks frontend. **JS é permitido, mas no mínimo possível** (nativo antes de JS).
 - Strings sempre em **pt-br**.
 - Módulos/páginas com specs separados: um spec por página, em `specs/`, seguindo o padrão de `specs/noticias.spec.md`.
 - Onde cada arquivo mora e como nomear: `organizacao.spec.md`.
 - Mudou escopo/status/rota/próximo passo? Atualize `update_spec/andamento.spec.md` (tabela **e** registro) na mesma sessão.
+- **`SECRET_KEY` nunca no código.** Ele vem do ambiente (`DJANGO_SECRET_KEY`) ou do arquivo encriptado `secrets/secret.key`, decriptado por `core/segredos.py`. Precisa dele? Importe `core.segredos.obter_secret_key()` — não reimplemente a decriptação. Detalhes em `contexto.md` §9.
 
 > O restante do contexto (stack, não-funcionais, design, RBAC, rotas gerais, ambiente, estrutura de apps, gotchas) está em **`contexto.md`**.

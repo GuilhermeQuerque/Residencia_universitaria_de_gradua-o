@@ -25,6 +25,15 @@ db.sqlite3-journal
 *.pem
 *.key
 
+# --- Segredo do Django (ver core/segredos.py e contexto.md §9) -------------
+# 1. O script que gera/decripta o SECRET_KEY: manipula material secreto.
+#    Ancorado na raiz: o modulo importavel core/segredos.py versiona normal.
+/segredos.py
+# 2. O arquivo com o segredo ENCRIPTADO (local de trabalho).
+/secrets/
+# 3. O .env real, quando gravado pelo `./segredos.py decriptar --escrever-env`.
+.env
+
 # Ferramentas
 .idea/
 .vscode/

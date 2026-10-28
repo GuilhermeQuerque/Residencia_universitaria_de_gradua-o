@@ -3,7 +3,7 @@
 > Registro **centralizado** de mudanças grandes feitas nos specs do projeto.
 > Existe para que os arquivos de spec continuem limpos (só o conteúdo atual) e para que o histórico do *porquê* fique em um lugar só, consultável.
 >
-> **Última atualização:** 27/10/2026
+> **Última atualização:** 28/10/2026
 
 ---
 
@@ -46,6 +46,30 @@ Exemplo do formato:
 **Ao escrever a entrada:** pegue os números de linha **depois** de editar o arquivo, senão o intervalo aponta para o lugar errado.
 
 ## 3. Registro atual
+
+### 28/10/2026 — Servidor pronto (venv + requirements.txt) e banco SQLite em produção
+
+| | |
+|---|---|
+| **Motivo** | *Ant.:* o `contexto.md` §2 mandava "SQLite em desenvolvimento → PostgreSQL em produção", mas o servidor **não tinha Django instalado** (o `venv/` tinha só o `pip`), não havia `requirements.txt`, e o `contexto.md` §8 afirmava que o `venv/` "não funciona" — sem explicar que ele quebra **só** pela montagem SSHFS (symlinks dão `EPERM`), funcionando normalmente no servidor. O banco PostgreSQL exigiria `postgres` instalado (não estava) **mais** a lib `psycopg`. *Defeito:* o projeto não tinha como rodar no servidor; e a decisão do PostgreSQL não tinha sido confrontada com o volume real do site (dezenas de moradores) nem com a regra de libs extras — PostgreSQL custaria uma dependência à toa. *Novo:* acesso SSH root habilitado (via `ssh-copy-id`, sem senha no transcript); Django 6.0.5 + `pypdf` instalados no `venv/` do servidor; `requirements.txt` versionado como fonte da verdade (só o que o código importa); `manage.py check`, `check --deploy`, `migrate` e `test` **passando sem aviso**; `runserver` testado via HTTP real (302 em `/`, 200 em `/admin/login/`); banco de produção **SQLite com modo WAL** (8 threads, 240 operações, zero erros), PostgreSQL **descartado** com o ponto de revisão registrado. *Bug corrigido no caminho:* o `gerar_secret_key()` produzia caracteres que o **shell expande** ao carregar o `.env` (`$var`) ou que **quebravam a linha de sintaxe** (`)`) — o `check --deploy` acusava `security.W009` porque o segredo de 50 chars chegava com 41. O alfabeto passou a ser `A-Za-z0-9-_.~`, seguro para shell. |
+| **Local** | `requirements.txt` (criação, raiz); `core/settings.py` §"Banco de dados" (linhas 99–124); `segredos.py` `gerar_secret_key()` (linhas 268–290); `contexto.md` §2 e §2.1 (linhas 17–44), §6 item 4 (linha 85); `organizacao.spec.md` §3 árvore-alvo (linha 39), §4.1 (linha 99), §4.8 (linhas 168–180), §6 (linha 215), §12 (linha 305); `update_spec/andamento.spec.md` §4 (linhas 76–80) |
+| **Arquivos** | `requirements.txt`, `core/settings.py`, `segredos.py`, `contexto.md`, `organizacao.spec.md`, `update_spec/andamento.spec.md` |
+
+### 28/10/2026 — Regra de libs extras: perguntar sim, adicionar por vontade própria não
+
+| | |
+|---|---|
+| **Motivo** | *Ant.:* a regra era "**Não adicionar bibliotecas extras** sem consultar o spec da página em que você está trabalhando" — leitura ambígua: podia ser entendida como proibição absoluta (nunca usar lib nova, nem perguntando). *Defeito:* a proibição absoluta é mais forte do que a intenção — **perguntar é permitido**; o que não pode é decidir sozinho. Na prática a ambiguidade apareceu ao implementar a encriptação do `SECRET_KEY`: havia a biblioteca `cryptography` (AES-GCM/Fernet) disponível e ela foi descartada **sem consulta**, quando a decisão era do programador. *Novo:* a regra passa a ser "**não adicionar bibliotecas extras por vontade própria**", com o caminho explícito: **pode** usar o que já está instalado, **pode** sugerir e **perguntar** (mesmo que a solução pareça óbvia), **não pode** instalar/adicionar ao `requirements.txt`/escrever código que dependa de lib nova sem resposta do programador. Se a resposta for "não", resolve-se com o que já existe — sem contornar a regra. |
+| **Local** | `contexto.md` §6 item 1 (linhas 54–61); `AGENTS.md` §"Regras de ouro" (linha 40) |
+| **Arquivos** | `contexto.md`, `AGENTS.md` |
+
+### 28/10/2026 — Segredo do Django gerado por script (encriptado, decriptado na hora)
+
+| | |
+|---|---|
+| **Motivo** | *Ant.:* o `SECRET_KEY` vinha de `DJANGO_SECRET_KEY` do ambiente, mas tinha um **fallback fixo escrito no código** (`django-insecure-dev-only-nao-use-em-producao`). Em desenvolvimento, quem não configurasse nada rodava com aquele valor; e não havia um caminho oficial para *gerar* o segredo — a documentação apontava para `get_random_secret_key()` do Django, que devolve o valor em texto claro no terminal, sem forma de guardá-lo com segurança. *Defeito:* segredo fixo no código é segredo fixo no histórico do git (o valor antigo já estava lá); e não havia como ter o segredo encriptado em disco, o que obriga a colar o valor no terminal e deixá-lo no shell history. *Novo:* o script `segredos.py` (raiz, **não versionado**) **gera** o `SECRET_KEY` com `secrets`, **encripta** com `scrypt` + `hmac/sha256` (só biblioteca padrão) e guarda em `secrets/secret.key`; o **decriptador** vive em `core/segredos.py` (versionado, é código) e é importado pelo `core/settings.py`, que resolve o segredo por: (1) `DJANGO_SECRET_KEY` do ambiente, (2) arquivo encriptado decriptado com a frase-semente `DJANGO_MASTER_KEY`, (3) **recusa a subir** — não há mais nenhum valor fixo no código. O decriptor confere a etiqueta de autenticação **antes** de devolver texto claro (fail-closed). O `.gitignore` ganhou `/segredos.py`, `/secrets/` e `.env`; o `push.sh` passou a recusar o commit se esses estiverem rastreados. |
+| **Local** | `segredos.py` (criação, raiz); `core/segredos.py` (criação); `core/settings.py` §"SECRET_KEY" (linhas 22–56); `.gitignore` §"Segredo do Django" (linhas 28–34); `push.sh` §"Verificações" (linhas 46–58); `.env.example` §"Django / segurança" (linhas 9–21); `contexto.md` §9 (linhas 108–165); `organizacao.spec.md` §3 árvore-alvo (linhas 39, 61, 78–80), §4.1 (linha 95), §4.9 (linhas 176–185), §6 (linhas 209–226), §8 (linhas 230–252), §9 (linhas 258–270); `update_spec/andamento.spec.md` §4 (linhas 67–84) |
+| **Arquivos** | `segredos.py`, `core/segredos.py`, `core/settings.py`, `.gitignore`, `push.sh`, `.env.example`, `contexto.md`, `organizacao.spec.md`, `update_spec/andamento.spec.md` |
 
 ### 28/10/2026 — Configuração por variável de ambiente (SECRET_KEY fora do código)
 

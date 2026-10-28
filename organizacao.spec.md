@@ -4,7 +4,7 @@
 > Serve para que qualquer programador (ou agente) saiba **onde cada arquivo mora**, **como nomear** e **o que não versionar** — sem precisar deduzir por leitura de código.
 > **Contexto geral** (stack, regras técnicas, RBAC, rotas gerais, ambiente) está em **`contexto.md`** — leia antes.
 > **Roadmap do site:** `update_spec/andamento.spec.md`.
-> **Última atualização:** 27/10/2026
+> **Última atualização:** 28/10/2026
 
 ---
 
@@ -36,7 +36,9 @@ PROJETO_SITE/
 ├── contexto.md                → contexto geral do site (read-once)
 ├── organizacao.spec.md        → este spec (organização de diretórios e arquivos)
 ├── manage.py                  → entrypoint do Django
+├── requirements.txt           → dependências do projeto (versionado)
 ├── push.sh                    → script de commit + push
+├── segredos.py                → script que gera/decripta o SECRET_KEY (NÃO versionado)
 ├── .gitignore                 → lista do que NÃO versionar
 ├── .env.example               → modelo de variáveis de ambiente (sem segredos)
 ├── claude.md                  → nota original da ideia do portal (arquivada na prática)
@@ -56,6 +58,7 @@ PROJETO_SITE/
 │
 ├── core/                      → app de configuração do Django
 │   ├── settings.py
+│   ├── segredos.py            → ponte que decripta o segredo (versionado)
 │   ├── urls.py
 │   ├── wsgi.py
 │   └── asgi.py
@@ -74,6 +77,9 @@ PROJETO_SITE/
 ├── media/                     → uploads dos moradores (NÃO versionado)
 │   └── .gitkeep               → mantém a pasta no git (o conteúdo é ignorado)
 │
+├── secrets/                   → segredo ENCRIPTADO do Django (NÃO versionado)
+│   └── secret.key             → só o arquivo encriptado; a frase-semente é do operador
+│
 ├── venv/                      → ambiente virtual (NÃO versionado)
 └── db.sqlite3                 → banco local (NÃO versionado)
 ```
@@ -90,7 +96,9 @@ Só entram na raiz: **configuração do projeto**, **ponto de entrada do Django*
 | `contexto.md` | raiz | Contexto geral. Único lugar para stack, RBAC, rotas gerais, ambiente. |
 | `organizacao.spec.md` | raiz | Este spec. Único spec fora de `specs/` (por ser regra transversal, não de página). |
 | `manage.py` | raiz | Padrão do Django. |
+| `requirements.txt` | raiz | Dependências do projeto, **versionado**. Fonte da verdade do que instalar — ver §6. |
 | `push.sh` | raiz | Script operacional do repositório. |
+| `segredos.py` | raiz | Script que **gera e decripta** o `SECRET_KEY`. **NÃO versionado** (§8). Vive na raiz porque é script operacional, junto do `push.sh`. |
 | `.gitignore` | raiz | Lista de exclusão (§8). |
 | `.env.example` | raiz | Modelo das variáveis de ambiente **sem segredo nenhum**. O `.env` real nunca é versionado. |
 
@@ -157,15 +165,28 @@ Layout interno padrão de um app:
 - **`tests.py` dentro do app** que testa.
 - Ao criar um app novo: registrar em `INSTALLED_APPS` (`core/settings.py`) e incluir as rotas em `core/urls.py`.
 
-### 4.8 `venv/` e banco de dados
+### 4.8 `venv/`, `requirements.txt` e banco de dados
 
 - `venv/` e `db.sqlite3` são **artefatos locais**, ignorados pelo git.
-- O `venv/` do repositório **não funciona** pela montagem SSHFS (root-owned, binários com `EPERM`) — ver `contexto.md` §8.
-- Em produção, o banco vira **PostgreSQL** (ver `contexto.md` §2 e §6).
+- **O `venv/` do repositório NÃO funciona pela montagem SSHFS** (symlinks dão `EPERM`) — mas **funciona normalmente no servidor**, onde o sistema de arquivos é nativo. Ver `contexto.md` §8.
+- **`requirements.txt` (raiz, versionado)** é a fonte da verdade das dependências:
+  - Só entra no arquivo o que o código **realmente importa** (`Django`, `pypdf`) + as dependências transitivas fixadas.
+  - **Não** gerar com `pip freeze` sem revisar: ele também gravaria pacotes de desenvolvimento e de sistema.
+  - Instalar no servidor: `venv/bin/pip install -r requirements.txt`.
+- **O banco é SQLite nos dois ambientes** (dev e servidor) — decisão de 28/10/2026, ver `contexto.md` §2.1. O `DATABASES` fica em `core/settings.py`, com **modo WAL** ativado.
 - **O `db.sqlite3` foi apagado de propósito (27/10/2026):** era o banco de desenvolvimento, com contas de teste e um superuser, e tinha acabado versionado por engano. O arquivo é **reconstruído** a qualquer momento com `python manage.py migrate` — não há dado de produção nele.
   - O `.gitignore` garante que ele **nunca mais** entre no repositório.
   - **Atenção:** apagar o arquivo **não** remove o banco do **histórico do git**. As versões antigas continuam acessíveis no GitHub até que o histórico seja reescrito (ver `update_spec/mod_spec.md`).
-  - Se o banco for recriado e receber dados reais, ele continua local — a migração para PostgreSQL é o que leva os dados para o servidor.
+  - **No servidor**, o `db.sqlite3` fica em `/home/residencia/PROJETO_SITE/` e é criado com `manage.py migrate`. É o banco real de produção — e precisa de **backup** (é um arquivo: copiar já é o backup).
+
+### 4.9 `secrets/` e o script `segredos.py` — o segredo do Django
+
+- **`segredos.py` (raiz)** — script que **gera** o `SECRET_KEY`, **encripta** e **decripta**. É o único lugar do projeto que conhece a criptografia. **Não versionado** (§8).
+- **`secrets/secret.key` (raiz)** — o segredo **encriptado**, em texto local. Permissões `600`. **Não versionado** (§8).
+- **`core/segredos.py`** — a **ponte importável**: carrega o script por caminho e expõe `obter_secret_key()`. **Este sim é versionado** — é código, não segredo. É importado por `core/settings.py`.
+- A **frase-semente** (`DJANGO_MASTER_KEY`) **nunca** é salva em arquivo. Ela pertence ao operador (e ao ambiente do serviço). Sem ela, o arquivo encriptado é inútil — e está tudo bem: é só regerar o segredo.
+- **Quem precisa do segredo em texto claro** importa `core.segredos.obter_secret_key()` e **não** reimplementa a decriptação nem lê o arquivo encriptado por conta própria. A regra completa está em `contexto.md` §9.
+- O `push.sh` **recusa o commit** se `segredos.py` ou `secrets/` estiverem rastreados (§8).
 
 ## 5. Nomenclatura
 
@@ -194,17 +215,21 @@ Layout interno padrão de um app:
 | Tipo de arquivo | Pasta | Versionado? |
 |---|---|---|
 | Código Python (app) | `controle/`, `noticias/`, `core/` | sim |
+| Dependências | `requirements.txt` (raiz) | sim |
 | Template HTML | `<app>/templates/<app>/` | sim |
 | Migration | `<app>/migrations/` | sim |
 | CSS / JS / imagem de marca | `static/<modulo>/<tipo>/` | sim |
 | Spec de página | `specs/<pagina>.spec.md` | sim |
 | Documento vivo | `update_spec/<doc>.md` | sim |
 | Fonte histórica | `arquivados/` | sim (congelado) |
+| Ponte de segredos (código) | `core/segredos.py` | sim |
 | Upload de morador | `media/<subpasta>/` | **não** |
 | Banco local | `db.sqlite3` | **não** |
 | Ambiente virtual | `venv/` | **não** |
 | Cache Python | `__pycache__/` | **não** |
-| Segredo | `.env` | **não** |
+| Segredo em texto claro | `.env` | **não** |
+| Segredo encriptado | `secrets/` | **não** |
+| Script de segredos | `segredos.py` (raiz) | **não** |
 
 ## 7. Regras de nome na interface (visível ao usuário)
 
@@ -225,6 +250,8 @@ staticfiles/        → estáticos coletados (collectstatic)
 .env  .env.*        → segredos e configuração local
 *.pem  *.key        → chaves e certificados
 *.log               → logs
+secrets/            → segredo ENCRIPTADO do Django
+/segredos.py        → script que gera/decripta o segredo
 ```
 
 > ✅ **Sã o `.env.example`** — ele tem os *nomes* das variáveis e valores de exemplo, **nenhum segredo real**. É a única forma de documentar a configuração sem vazar nada.
@@ -233,13 +260,14 @@ O `push.sh` **recusa o commit** se algum desses já estiver rastreado — ver `c
 
 > **Arquivo local de configuração:** se um valor variar entre máquinas (fila da impressora, chave de API), ele vem de **variável de ambiente** (`os.environ.get`) — ver `core/settings.py` §`IMPRESSORA_NOME`/`IMPRESSORA_IP` e `contexto.md` §9. Nunca hardcode e nunca comite.
 >
-> **`SECRET_KEY` em particular:** nunca no código. O código lê `DJANGO_SECRET_KEY` do ambiente; o valor fixo que sobrou é só um fallback de **desenvolvimento** e o Django **recusa a subir** com `DJANGO_DEBUG=False` se ele ainda estiver em uso. O `.env.example` documenta as variáveis; o `.env` real fica fora do git.
+> **`SECRET_KEY` em particular:** nunca no código — nem fixo, nem "fallback". O `core/settings.py` resolve o segredo por `core.segredos.obter_secret_key()`, que tenta (1) `DJANGO_SECRET_KEY` do ambiente e (2) o arquivo encriptado `secrets/secret.key`, decriptado com a frase-semente `DJANGO_MASTER_KEY`. Se nenhum dos dois existir, o Django **recusa a subir**. O `.env.example` documenta as variáveis; o `.env` real fica fora do git. Detalhes em `contexto.md` §9 e `organizacao.spec.md` §4.9.
 
 ## 9. Checklist antes de commitar
 
 - [ ] O arquivo novo está na pasta certa (§4 e §6)?
 - [ ] O nome segue `snake_case`, minúsculo, sem acento e sem espaço (§5)?
-- [ ] Nada de `db.sqlite3`, `media/`, `venv/`, `__pycache__/` ou `.env` rastreado?
+- [ ] Nada de `db.sqlite3`, `media/`, `venv/`, `__pycache__/`, `.env`, `secrets/` ou `segredos.py` rastreado?
+- [ ] O `SECRET_KEY` não está escrito em nenhum arquivo versionado?
 - [ ] Se criei um spec de página, ele está em `specs/` e segue o padrão de `specs/noticias.spec.md`?
 - [ ] Se mudei escopo, status ou rota, `update_spec/andamento.spec.md` foi atualizado na mesma sessão?
 - [ ] Se mudei algo geral (stack, RBAC, rotas, ambiente), `contexto.md` foi atualizado?
@@ -274,7 +302,7 @@ Atualize quando:
 Este spec **não** regula:
 
 - a organização do **sistema operacional** do servidor (`/home`, `/var`, `/opt`, partições, usuários, permissões, cron, backups de sistema);
-- a estrutura interna do **banco PostgreSQL** (tabelas e models já são regidos pelos specs de página);
+- a estrutura interna do **banco de dados** (tabelas e models já são regidos pelos specs de página);
 - a organização do **`venv/`** e do ambiente Python fora do repositório;
 - ferramentas de **deploy** além do `push.sh` já descrito em `contexto.md` §8.
 

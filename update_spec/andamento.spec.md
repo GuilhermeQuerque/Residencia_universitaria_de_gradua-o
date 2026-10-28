@@ -2,7 +2,7 @@
 
 > **Documento VIVO.** Este arquivo muda a cada avanço do projeto e é o **único** lugar onde a visão de módulos, prioridades e status do site é mantida.
 > **Regra:** nenhum outro spec pode duplicar a tabela de módulos. Se um módulo nasce, muda de status ou ganha/perde rota, **este arquivo é atualizado na mesma hora** (ver `regras_atualizacao.md`).
-> **Última atualização:** 27/10/2026
+> **Última atualização:** 28/10/2026
 
 ---
 
@@ -71,9 +71,15 @@ Consequência prática: o escopo do site é amplo e nem tudo está definido. Doc
 | `MEDIA_URL` / `MEDIA_ROOT` no settings | **concluído** (27/10/2026) | `organizacao.spec.md` §4.6 |
 | Pasta `static/` + `impressoras/imagens/cabecalho_residencia.jpg` | **concluído** (27/10/2026) | `organizacao.spec.md` §4.5 |
 | Especificação da organização de diretórios e arquivos | **concluído** (27/10/2026) | `organizacao.spec.md` |
-| Migração SQLite → PostgreSQL | pendente (ao ir para produção) | `contexto.md` §2 e §6 |
+| `SECRET_KEY` fora do código (script `segredos.py` + decriptor) | **concluído** (28/10/2026) | `contexto.md` §9 · `organizacao.spec.md` §4.9 |
+| Onde o decriptamento será necessário (módulos futuros) | **em aberto** — nenhum módulo precisa do segredo hoje; quando precisar, importar `core.segredos.obter_secret_key()` | `contexto.md` §9 |
+| Servidor com Python/Django funcionando (venv + `requirements.txt`) | **concluído** (28/10/2026) | `organizacao.spec.md` §4.8 |
+| Banco de produção: SQLite com modo WAL | **concluído** (28/10/2026) | `contexto.md` §2.1 |
+| PostgreSQL em produção | **descartado** (28/10/2026) — SQLite nativo dá conta do volume; PostgreSQL fica como ponto de revisão | `contexto.md` §2.1 |
+| Serviço do site rodando no servidor (systemd/supervisor) | pendente | `contexto.md` §8 |
 | Backup do banco no `servidor_residencia` | pendente | `contexto.md` §3 |
 | Backup do `media/` (uploads) no `servidor_residencia` | pendente | `organizacao.spec.md` §4.6 |
+| Backup do `secrets/` (segredo encriptado) no `servidor_residencia` | pendente | `organizacao.spec.md` §4.9 |
 | Log de auditoria próprio (visitantes) | pendente | `contexto.md` §3 |
 | HTTPS/domínio do servidor | pendente | `contexto.md` §2 |
-| **Reescrever histórico do git** (tirar `db.sqlite3` dos commits antigos) + rotacionar `SECRET_KEY` e senhas | **urgente** | `update_spec/mod_spec.md` (27/10/2026) |
+| **Reescrever histórico do git** (tirar `db.sqlite3` dos commits antigos) + rotacionar `SECRET_KEY` e senhas | **urgente** — o `SECRET_KEY` já saiu do código, mas o **valor antigo continua no histórico** | `update_spec/mod_spec.md` (28/10/2026) |

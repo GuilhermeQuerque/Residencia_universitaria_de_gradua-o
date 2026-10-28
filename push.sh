@@ -47,7 +47,8 @@ fi
 # mas arquivos já versionados podem continuar rastreados).
 # Obs.: media/.gitkeep é a única coisa permitida dentro de media/ (pasta vazia
 # não versiona no git). Ver organizacao.spec.md §4.6.
-LEAKED=$(git ls-files | grep -E '(^|/)(db\.sqlite3|\.env)$|\.pyc$|__pycache__/|^venv/|^\.venv/|^media/' | grep -v '^media/\.gitkeep$' || true)
+# Obs.: /segredos.py e /secrets/ tratam do SECRET_KEY — nunca versionar.
+LEAKED=$(git ls-files | grep -E '(^|/)(db\.sqlite3|\.env)$|\.pyc$|__pycache__/|^venv/|^\.venv/|^media/|^secrets/|^segredos\.py$' | grep -v '^media/\.gitkeep$' | grep -v '^core/segredos\.py$' || true)
 if [[ -n "$LEAKED" ]]; then
   err "Arquivos sensíveis ainda rastreados pelo git — remova-os antes de commitar:
 $LEAKED

@@ -1,0 +1,23 @@
+# Dependências do projeto — Residência Universitária UFRN
+#
+# Instalação (no servidor, dentro do venv do projeto):
+#   /home/residencia/PROJETO_SITE/venv/bin/pip install -r requirements.txt
+#
+# Este arquivo é a fonte da verdade das dependências. Ele foi gerado a partir
+# do `pip freeze` do venv do servidor em 28/10/2026.
+#
+# Só entram aqui dependências que o código **realmente usa**:
+#   - Django       → o framework (versão fixada no contexto.md §2)
+#   - pypdf        → contagem de páginas para a impressão (controle/impressao.py)
+#   - asgiref      → dependência do Django (servidor ASGI)
+#   - sqlparse     → dependência do Django (formatador de SQL para o admin)
+#
+# Não usar `pip freeze > requirements.txt` sem revisar: ele também gravaria
+# pacotes de desenvolvimento e de sistema. Ver contexto.md §6 (regra de libs).
+
+Django==6.0.5
+pypdf==6.21.4
+
+# Dependências transitivas do Django (fixadas para reprodutibilidade):
+asgiref==3.13.0
+sqlparse==0.6.0
