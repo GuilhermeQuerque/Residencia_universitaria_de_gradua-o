@@ -17,16 +17,34 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+# --- Configuração por variável de ambiente -------------------------------
+# Em desenvolvimento funciona sem configurar nada (fallback abaixo).
+# Em produção, defina no ambiente do serviço:
+#   DJANGO_SECRET_KEY=<segredo aleatório longo>
+#   DJANGO_DEBUG=False
+#   DJANGO_ALLOWED_HOSTS=residencia.ufrn.edu.br,10.2.184.170
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'REMOVIDO-DO-HISTORICO'
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    # Fallback de DESENVOLVIMENTO. Nunca use este valor em produção:
+    # quem o conhece consegue forjar sessões/cookies assinados.
+    'django-insecure-dev-only-nao-use-em-producao',
+)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('1', 'true', 'yes', 'sim')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
+    if h.strip()
+]
+
+if not DEBUG and SECRET_KEY.startswith('django-insecure-'):
+    raise RuntimeError(
+        'DJANGO_SECRET_KEY precisa ser definido com um valor real quando '
+        'DJANGO_DEBUG=False. Gere um com: '
+        'python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"'
+    )
 
 
 # Application definition
@@ -128,6 +146,20 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Arquivos enviados pelos moradores (uploads). Ver organizacao.spec.md §4.
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# --- HTTPS / cookies seguros (ativam sozinhos quando DEBUG=False) ---------
+# Em desenvolvimento ficam desligados para não atrapalhar o runserver local.
+
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_HSTS_SECONDS = 0 if DEBUG else int(
+    os.environ.get('DJANGO_SECURE_HSTS_SECONDS', '31536000')
+)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+X_FRAME_OPTIONS = 'DENY'
+SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # Redirecionamentos simples para fluxo de login/logout.
 LOGIN_URL = 'login'

@@ -55,8 +55,15 @@ Use: git rm -r --cached <arquivo>"
 fi
 
 # Aviso (não bloqueia): segredo de verdade no conteúdo do diff.
-if git diff --cached --no-color 2>/dev/null | grep -nE '^\+.*(SECRET_KEY *= *["'"'"'][^"'"'"']{20,}|api[_-]?key *= *["'"'"'][^"'"'"']{15,}|password *= *["'"'"'][^"'"'"']{8,})' >/dev/null 2>&1; then
-  warn "O diff staged parece conter chave/segredo. Revise antes de commitar."
+# O diff precisa incluir staged + não-staged, porque `git add -A` só acontece depois.
+DIFF_TOTAL="$(git diff --no-color; git diff --cached --no-color)"
+if printf '%s' "$DIFF_TOTAL" | grep -nE '^\+.*(SECRET_KEY *= *["'"'"'][^"'"'"']{20,}|api[_-]?key *= *["'"'"'][^"'"'"']{15,}|password *= *["'"'"'][^"'"'"']{8,})' >/dev/null 2>&1; then
+  warn "O diff parece conter chave/segredo. Revise antes de commitar."
+fi
+
+# Aviso (não bloqueia): .env com valor real seria comitado.
+if [[ -f .env ]] && git ls-files --error-unmatch .env >/dev/null 2>&1; then
+  warn "O arquivo .env está versionado. Ele deveria estar no .gitignore."
 fi
 
 # --- Coleta o que será commitado --------------------------------------------

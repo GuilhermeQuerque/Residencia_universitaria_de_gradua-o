@@ -47,6 +47,14 @@ Exemplo do formato:
 
 ## 3. Registro atual
 
+### 28/10/2026 — Configuração por variável de ambiente (SECRET_KEY fora do código)
+
+| | |
+|---|---|
+| **Motivo** | *Ant.:* o `SECRET_KEY` estava fixo no `core/settings.py` e publicado em todos os commits do GitHub; `DEBUG` e `ALLOWED_HOSTS` também fixos, sem forma de ligar o projeto em produção sem editar código. *Defeito:* segredo conhecido permite forjar sessões e cookies assinados; e o `check --deploy` do Django acusava 4 falhas de HTTPS (HSTS, redirect SSL, cookie de sessão e cookie CSRF). *Novo:* `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS` e HSTS vêm do ambiente (`DJANGO_*`); o valor fixo virou fallback de desenvolvimento e o Django **recusa a subir** com `DEBUG=False` se ele ainda estiver em uso; HTTPS/cookies seguros ligam sozinhos fora de `DEBUG`; `.env.example` documenta as variáveis sem nenhum segredo. |
+| **Local** | `core/settings.py` §"Configuração por variável de ambiente" (linhas 20–50) e §"HTTPS / cookies seguros" (linhas 150–163); `contexto.md` §9 (linhas 108–128); `organizacao.spec.md` §3 árvore-alvo (linha 41), §4.1 (linha 95) e §8 (linhas 229–240); `.env.example` (criação) |
+| **Arquivos** | `core/settings.py`, `contexto.md`, `organizacao.spec.md`, `.env.example` |
+
 ### 27/10/2026 — Banco de desenvolvimento apagado
 
 | | |

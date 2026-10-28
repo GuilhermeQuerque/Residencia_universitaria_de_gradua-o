@@ -38,6 +38,7 @@ PROJETO_SITE/
 ├── manage.py                  → entrypoint do Django
 ├── push.sh                    → script de commit + push
 ├── .gitignore                 → lista do que NÃO versionar
+├── .env.example               → modelo de variáveis de ambiente (sem segredos)
 ├── claude.md                  → nota original da ideia do portal (arquivada na prática)
 │
 ├── specs/                     → um spec por página/módulo do site
@@ -91,6 +92,7 @@ Só entram na raiz: **configuração do projeto**, **ponto de entrada do Django*
 | `manage.py` | raiz | Padrão do Django. |
 | `push.sh` | raiz | Script operacional do repositório. |
 | `.gitignore` | raiz | Lista de exclusão (§8). |
+| `.env.example` | raiz | Modelo das variáveis de ambiente **sem segredo nenhum**. O `.env` real nunca é versionado. |
 
 ### 4.2 `specs/` — um spec por página/módulo
 
@@ -225,9 +227,13 @@ staticfiles/        → estáticos coletados (collectstatic)
 *.log               → logs
 ```
 
+> ✅ **Sã o `.env.example`** — ele tem os *nomes* das variáveis e valores de exemplo, **nenhum segredo real**. É a única forma de documentar a configuração sem vazar nada.
+
 O `push.sh` **recusa o commit** se algum desses já estiver rastreado — ver `contexto.md` §8.
 
 > **Arquivo local de configuração:** se um valor variar entre máquinas (fila da impressora, chave de API), ele vem de **variável de ambiente** (`os.environ.get`) — ver `core/settings.py` §`IMPRESSORA_NOME`/`IMPRESSORA_IP` e `contexto.md` §9. Nunca hardcode e nunca comite.
+>
+> **`SECRET_KEY` em particular:** nunca no código. O código lê `DJANGO_SECRET_KEY` do ambiente; o valor fixo que sobrou é só um fallback de **desenvolvimento** e o Django **recusa a subir** com `DJANGO_DEBUG=False` se ele ainda estiver em uso. O `.env.example` documenta as variáveis; o `.env` real fica fora do git.
 
 ## 9. Checklist antes de commitar
 

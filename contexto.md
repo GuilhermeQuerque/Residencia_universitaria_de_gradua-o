@@ -105,7 +105,25 @@ O script **recusa** o commit se houver arquivo sensível rastreado (`db.sqlite3`
 
 > ⚠️ O `venv/` do repositório foi criado no servidor remoto, é root-owned, só contém o `pip` (sem Django) e seus binários retornam `EPERM` pela montagem SSHFS — **`source venv/bin/activate` não funciona** a partir da montagem. Crie um venv próprio ou instale as dependências no `python3` do sistema.
 
-## 9. Variáveis de ambiente (impressora)
+## 9. Variáveis de ambiente
+
+### Django / segurança (ler primeiro)
+
+| Variável | Padrão | Quando usar |
+|---|---|---|
+| `DJANGO_SECRET_KEY` | valor de dev (inseguro) | **Obrigatória em produção** — sem ela e com `DJANGO_DEBUG=False` o Django nem sobe |
+| `DJANGO_DEBUG` | `True` | `False` em produção (liga SSL, cookies seguros e HSTS) |
+| `DJANGO_ALLOWED_HOSTS` | vazio | Lista separada por vírgula: `a.com,b.com` |
+| `DJANGO_SECURE_HSTS_SECONDS` | `31536000` | Em produção, tempo do HSTS em segundos |
+
+Gere um segredo real com:
+```bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+> ⚠️ **O `SECRET_KEY` não está mais fixo no código** (27/10/2026). O valor antigo estava publicado no histórico do git — quem o conhece consegue forjar sessões e cookies assinados. O valor fixo agora é um *fallback de desenvolvimento* sem conteúdo real.
+
+### Impressora
 
 ```bash
 export IMPRESSORA_NOME="impresora_padrão"   # ou outra fila CUPS

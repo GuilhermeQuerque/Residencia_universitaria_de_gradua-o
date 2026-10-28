@@ -20,6 +20,8 @@ db.sqlite3-journal
 # Segredos / ambiente
 .env
 .env.*
+# ...mas o modelo (sem segredo real) versiona, para documentar as variaveis.
+!.env.example
 *.pem
 *.key
 
